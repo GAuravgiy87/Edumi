@@ -1,0 +1,232 @@
+/* Navigation Styles */
+nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-brand {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    margin-right: 2.5rem;
+    letter-spacing: -0.5px;
+}
+
+nav a {
+    color: var(--gray-700);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.625rem 1.125rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+nav a:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+}
+
+/* Profile Dropdown */
+.nav-profile-dropdown {
+    position: relative;
+}
+
+.nav-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.nav-profile-btn:hover {
+    border-color: var(--primary);
+    background: var(--gray-50);
+}
+
+.profile-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-weight: 600;
+    color: var(--gray-900);
+    font-size: 0.95rem;
+}
+
+.dropdown-arrow {
+    color: var(--gray-500);
+    transition: transform 0.2s;
+}
+
+.nav-profile-btn:hover .dropdown-arrow {
+    color: var(--primary);
+}
+
+.profile-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    min-width: 240px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s;
+    z-index: 1000;
+}
+
+.profile-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.dropdown-user-info {
+    color: var(--white);
+}
+
+.dropdown-username {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.dropdown-email {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 0.5rem 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background: var(--gray-50);
+    color: var(--primary);
+}
+
+.dropdown-item.logout-item {
+    color: var(--danger);
+}
+
+.dropdown-item.logout-item:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.dropdown-icon {
+    font-size: 1.25rem;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdown-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-logout {
+    background: var(--danger) !important;
+    color: var(--white) !important;
+    font-weight: 600;
+}
+
+.nav-logout:hover {
+    background: #dc2626 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 1rem;
+    }
+    
+    .nav-left, .nav-right {
+        gap: 0.5rem;
+    }
+    
+    nav a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .profile-name {
+        display: none;
+    }
+    
+    .nav-profile-btn {
+        padding: 0.5rem;
+    }
+}

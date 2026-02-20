@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="auth-split-container">
+    <!-- Left Side - Geometric Shapes -->
+    <div class="auth-left-panel">
+        <div class="shapes-illustration">
+            <!-- Orange Semi-Circle -->
+            <div class="shape-semicircle">
+                <div class="shape-face">
+                    <div class="shape-eye left-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="shape-eye right-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="shape-mouth happy"></div>
+                </div>
+            </div>
+            
+            <!-- Purple Rectangle -->
+            <div class="shape-rect-purple">
+                <div class="shape-face">
+                    <div class="shape-eye left-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="shape-eye right-eye">
+                        <div class="pupil"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dark Rectangle -->
+            <div class="shape-rect-dark">
+                <div class="shape-face">
+                    <div class="shape-eye left-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="shape-eye right-eye">
+                        <div class="pupil"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Yellow Pill -->
+            <div class="shape-pill-yellow">
+                <div class="shape-face">
+                    <div class="shape-eye left-eye">
+                        <div class="pupil"></div>
+                    </div>
+                    <div class="shape-mouth line"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Brand Name -->
+        <div class="brand-name">Edumi</div>
+    </div>
+    
+    <!-- Right Side - Register Form -->
+    <div class="auth-right-panel">
+        <div class="auth-form-container">
+            <div class="auth-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            
+            <h1>Create account</h1>
+            <p class="auth-subtitle">Join Edumi to get started</p>
+            
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                
+                <div class="form-field">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="Choose a username" autofocus>
+                </div>
+                
+                <div class="form-field">
+                    <label>Password</label>
+                    <input type="password" name="password1" required placeholder="Create a password">
+                </div>
+                
+                <div class="form-field">
+                    <label>Confirm Password</label>
+                    <input type="password" name="password2" required placeholder="Confirm your password">
+                </div>
+                
+                <div class="form-field">
+                    <label>I am a</label>
+                    <select name="user_type" required>
+                        <option value="">Select your role</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                
+                {% if error %}
+                    <div class="error-alert">{{ error }}</div>
+                {% endif %}
+                
+                <button type="submit" class="btn-login">Create Account</button>
+            </form>
+            
+            <p class="signup-link">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Eyes follow cursor
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('.auth-split-container');
+    const pupils = document.querySelectorAll('.pupil');
+    
+    container.addEventListener('mousemove', function(e) {
+        pupils.forEach(pupil => {
+            const eye = pupil.parentElement;
+            const eyeRect = eye.getBoundingClientRect();
+            const eyeCenterX = eyeRect.left + eyeRect.width / 2;
+            const eyeCenterY = eyeRect.top + eyeRect.height / 2;
+            
+            const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
+            const distance = Math.min(eyeRect.width / 6, 6);
+            
+            const pupilX = Math.cos(angle) * distance;
+            const pupilY = Math.sin(angle) * distance;
+            
+            pupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+        });
+    });
+});
+</script>
+{% endblock %}

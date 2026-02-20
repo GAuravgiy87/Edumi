@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-camera-container">
+    <div class="camera-header">
+        <h2>{{ camera.name }}</h2>
+        <div>
+            <button onclick="testCamera()" class="btn-test">Test Connection</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn-back">← Back to Dashboard</a>
+        </div>
+    </div>
+    
+    <div id="status-message" class="status-message"></div>
+    
+    <div class="camera-feed-container">
+        <div class="feed-wrapper">
+            <img id="camera-stream" src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }} feed" class="camera-stream" onerror="handleImageError()">
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Connecting to camera...</p>
+            </div>
+        </div>
+        
+        <div class="camera-details">
+            <h3>Camera Details</h3>
+            <div class="detail-item">
+                <span class="label">RTSP URL:</span>
+                <span class="value">{{ camera.rtsp_url }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">IP Address:</span>
+                <span class="value">{{ camera.ip_address }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Port:</span>
+                <span class="value">{{ camera.port }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Status:</span>
+                <span class="value status-active" id="camera-status">● Connecting...</span>
+            </div>
+            
+            <div class="troubleshooting">
+                <h4>Troubleshooting</h4>
+                <ul>
+                    <li>Ensure camera is on same WiFi network</li>
+                    <li>Check RTSP URL format is correct</li>
+                    <li>Verify camera credentials</li>
+                    <li>Try accessing camera from VLC player first</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let imageLoaded = false;
+
+function testCamera() {
+    const statusMsg = document.getElementById('status-message');
+    statusMsg.textContent = 'Testing camera connection...';
+    statusMsg.className = 'status-message info';
+    statusMsg.style.display = 'block';
+    
+    fetch('{% url "test_camera" camera.id %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusMsg.textContent = '✓ ' + data.message;
+                statusMsg.className = 'status-message success';
+            } else {
+                statusMsg.textContent = '✗ ' + data.message;
+                statusMsg.className = 'status-message error';
+            }
+            setTimeout(() => {
+                statusMsg.style.display = 'none';
+            }, 5000);
+        })
+        .catch(error => {
+            statusMsg.textContent = '✗ Error testing camera: ' + error;
+            statusMsg.className = 'status-message error';
+        });
+}
+
+function handleImageError() {
+    const overlay = document.getElementById('loading-overlay');
+    const status = document.getElementById('camera-status');
+    
+    if (!imageLoaded) {
+        overlay.innerHTML = '<p style="color: #d63031;">⚠ Cannot connect to camera<br><small>Check if camera is online and RTSP URL is correct</small></p>';
+        status.innerHTML = '● Offline';
+        status.className = 'value status-inactive';
+    }
+}
+
+// Hide loading overlay when image loads
+document.getElementById('camera-stream').addEventListener('load', function() {
+    imageLoaded = true;
+    document.getElementById('loading-overlay').style.display = 'none';
+    document.getElementById('camera-status').innerHTML = '● Active';
+    document.getElementById('camera-status').className = 'value status-active';
+});
+
+// Auto-test connection on page load
+setTimeout(testCamera, 1000);
+</script>
+
+<style>
+.view-camera-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+.camera-header h2 {
+    color: #212529;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.camera-header > div {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-test {
+    background: #28a745;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-test:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.btn-back {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.status-message {
+    display: none;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.status-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-message.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.camera-feed-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.feed-wrapper {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid #343a40;
+}
+
+.camera-stream {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.spinner {
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.camera-details {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+    height: fit-content;
+}
+
+.camera-details h3 {
+    color: #212529;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item .label {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.detail-item .value {
+    color: #212529;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.status-active {
+    color: #28a745 !important;
+}
+
+.status-inactive {
+    color: #dc3545 !important;
+}
+
+.troubleshooting {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.troubleshooting h4 {
+    color: #212529;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.troubleshooting ul {
+    list-style: none;
+    padding: 0;
+}
+
+.troubleshooting li {
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.troubleshooting li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #495057;
+}
+
+@media (max-width: 968px) {
+    .camera-feed-container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
