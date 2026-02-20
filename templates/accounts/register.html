@@ -113,25 +113,48 @@
 </div>
 
 <script>
-// Eyes follow cursor
+// Eyes follow cursor with constrained pupil movement
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.querySelector('.auth-split-container');
     const pupils = document.querySelectorAll('.pupil');
+    const eyes = document.querySelectorAll('.shape-eye');
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    let isLookingAway = false;
     
+    // Eye following cursor
     container.addEventListener('mousemove', function(e) {
+        if (isLookingAway) return; // Don't follow cursor when looking away
+        
         pupils.forEach(pupil => {
             const eye = pupil.parentElement;
             const eyeRect = eye.getBoundingClientRect();
             const eyeCenterX = eyeRect.left + eyeRect.width / 2;
             const eyeCenterY = eyeRect.top + eyeRect.height / 2;
             
+            // Calculate angle to cursor
             const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
-            const distance = Math.min(eyeRect.width / 6, 6);
             
-            const pupilX = Math.cos(angle) * distance;
-            const pupilY = Math.sin(angle) * distance;
+            // Maximum distance pupil can move
+            const maxDistance = 2;
             
-            pupil.style.transform = `translate(${pupilX}px, ${pupilY}px)`;
+            const pupilX = Math.cos(angle) * maxDistance;
+            const pupilY = Math.sin(angle) * maxDistance;
+            
+            // Apply transform from center position
+            pupil.style.transform = `translate(calc(-50% + ${pupilX}px), calc(-50% + ${pupilY}px))`;
+        });
+    });
+    
+    // Look away when typing password
+    passwordInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            isLookingAway = true;
+            eyes.forEach(eye => eye.classList.add('looking-away'));
+        });
+        
+        input.addEventListener('blur', function() {
+            isLookingAway = false;
+            eyes.forEach(eye => eye.classList.remove('looking-away'));
         });
     });
 });
