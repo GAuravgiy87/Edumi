@@ -6,36 +6,38 @@ from typing import Optional
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import StreamingHttpResponse, JsonResponse
-from .models import Camera
+from django.contrib.auth.models import User
+from .models import Camera, CameraPermission
+from mobile_cameras.models import MobileCamera, MobileCameraPermission
 
 logger = logging.getLogger('cameras')
 
 def is_admin(user):
-    # Allow both 'Admin' and teachers to manage cameras
+    """Check if user is admin"""
     if user.is_authenticated:
         if user.username == 'Admin' or user.username == 'admin' or user.is_superuser:
             return True
-        if hasattr(user, 'userprofile') and user.userprofile.user_type == 'teacher':
-            return True
     return False
 
-def can_view_camera(user):
-    # Allow Admin, Teachers, and Students to view cameras
-    if user.is_authenticated:
-        if user.username == 'Admin' or user.username == 'admin' or user.is_superuser:
-            return True
-        if hasattr(user, 'userprofile'):
-            return user.userprofile.user_type in ['teacher', 'student']
+def can_manage_camera(user, camera):
+    """Check if user can manage (edit/delete) a specific camera"""
+    if is_admin(user):
+        return True
+    # Teachers can only manage cameras they have permission for
+    if hasattr(user, 'userprofile') and user.userprofile.user_type == 'teacher':
+        return camera.has_permission(user)
     return False
 
-def is_teacher(user):
-    if user.is_authenticated and hasattr(user, 'userprofile'):
-        return user.userprofile.user_type == 'teacher'
-    return False
-
-def is_student(user):
-    if user.is_authenticated and hasattr(user, 'userprofile'):
-        return user.userprofile.user_type == 'student'
+def can_view_camera(user, camera):
+    """Check if user can view a specific camera"""
+    if is_admin(user):
+        return True
+    # Teachers can view cameras they have permission for
+    if hasattr(user, 'userprofile') and user.userprofile.user_type == 'teacher':
+        return camera.has_permission(user)
+    # Students can view all active cameras
+    if hasattr(user, 'userprofile') and user.userprofile.user_type == 'student':
+        return camera.is_active
     return False
 
 def test_rtsp_paths(ip, port, username, password):
@@ -88,7 +90,19 @@ def admin_dashboard(request):
         return redirect('login')
     
     cameras = Camera.objects.all()
-    return render(request, 'cameras/admin_dashboard.html', {'cameras': cameras})
+    teachers = User.objects.filter(userprofile__user_type='teacher')
+    
+    # Get permissions for each camera
+    camera_permissions = {}
+    for camera in cameras:
+        camera_permissions[camera.id] = camera.get_authorized_teachers()
+    
+    context = {
+        'cameras': cameras,
+        'teachers': teachers,
+        'camera_permissions': camera_permissions,
+    }
+    return render(request, 'cameras/admin_dashboard.html', context)
 
 @login_required
 def add_camera(request):
@@ -328,10 +342,11 @@ camera_manager = CameraManager()
 @login_required
 def camera_feed(request, camera_id):
     """Proxy camera feed from camera service on port 8001"""
-    if not can_view_camera(request.user):
-        return redirect('login')
-    
     camera = get_object_or_404(Camera, id=camera_id)
+    
+    # Check permission
+    if not can_view_camera(request.user, camera):
+        return JsonResponse({'error': 'You do not have permission to view this camera'}, status=403)
     
     import requests
     
@@ -361,18 +376,46 @@ def camera_feed(request, camera_id):
 @login_required
 def live_monitor(request):
     """View to see all live camera feeds in a grid"""
-    if not can_view_camera(request.user):
+    if not request.user.is_authenticated:
         return redirect('login')
     
-    cameras = Camera.objects.filter(is_active=True)
-    return render(request, 'cameras/live_monitor.html', {'cameras': cameras})
+    # Filter RTSP cameras based on user permissions
+    if is_admin(request.user):
+        cameras = Camera.objects.filter(is_active=True)
+        mobile_cameras = MobileCamera.objects.filter(is_active=True)
+    elif hasattr(request.user, 'userprofile'):
+        if request.user.userprofile.user_type == 'teacher':
+            # Teachers see cameras they have permission for
+            camera_ids = CameraPermission.objects.filter(teacher=request.user).values_list('camera_id', flat=True)
+            cameras = Camera.objects.filter(id__in=camera_ids, is_active=True)
+            
+            mobile_camera_ids = MobileCameraPermission.objects.filter(teacher=request.user).values_list('mobile_camera_id', flat=True)
+            mobile_cameras = MobileCamera.objects.filter(id__in=mobile_camera_ids, is_active=True)
+        elif request.user.userprofile.user_type == 'student':
+            # Students see all active cameras
+            cameras = Camera.objects.filter(is_active=True)
+            mobile_cameras = MobileCamera.objects.filter(is_active=True)
+        else:
+            cameras = Camera.objects.none()
+            mobile_cameras = MobileCamera.objects.none()
+    else:
+        cameras = Camera.objects.none()
+        mobile_cameras = MobileCamera.objects.none()
+    
+    context = {
+        'cameras': cameras,
+        'mobile_cameras': mobile_cameras,
+    }
+    return render(request, 'cameras/live_monitor.html', context)
 
 @login_required
 def view_camera(request, camera_id):
-    if not can_view_camera(request.user):
+    camera = get_object_or_404(Camera, id=camera_id)
+    
+    # Check permission
+    if not can_view_camera(request.user, camera):
         return redirect('login')
     
-    camera = get_object_or_404(Camera, id=camera_id)
     return render(request, 'cameras/view_camera.html', {'camera': camera})
 
 @login_required
@@ -400,3 +443,68 @@ def test_camera(request, camera_id):
     except Exception as e:
         logger.error(f"Error testing camera {camera_id}: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)})
+
+@login_required
+def grant_permission(request, camera_id):
+    """Grant camera access to a teacher"""
+    if not is_admin(request.user):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    if request.method == 'POST':
+        camera = get_object_or_404(Camera, id=camera_id)
+        teacher_id = request.POST.get('teacher_id')
+        teacher = get_object_or_404(User, id=teacher_id)
+        
+        # Verify teacher has teacher profile
+        if not hasattr(teacher, 'userprofile') or teacher.userprofile.user_type != 'teacher':
+            return JsonResponse({'error': 'User is not a teacher'}, status=400)
+        
+        # Create or get permission
+        permission, created = CameraPermission.objects.get_or_create(
+            camera=camera,
+            teacher=teacher,
+            defaults={'granted_by': request.user}
+        )
+        
+        if created:
+            return JsonResponse({'success': True, 'message': f'Access granted to {teacher.username}'})
+        else:
+            return JsonResponse({'success': False, 'message': 'Permission already exists'})
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def revoke_permission(request, camera_id, teacher_id):
+    """Revoke camera access from a teacher"""
+    if not is_admin(request.user):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    camera = get_object_or_404(Camera, id=camera_id)
+    teacher = get_object_or_404(User, id=teacher_id)
+    
+    # Delete permission
+    deleted_count = CameraPermission.objects.filter(camera=camera, teacher=teacher).delete()[0]
+    
+    if deleted_count > 0:
+        return JsonResponse({'success': True, 'message': f'Access revoked from {teacher.username}'})
+    else:
+        return JsonResponse({'success': False, 'message': 'Permission not found'})
+
+@login_required
+def manage_permissions(request, camera_id):
+    """View to manage permissions for a specific camera"""
+    if not is_admin(request.user):
+        return redirect('login')
+    
+    camera = get_object_or_404(Camera, id=camera_id)
+    all_teachers = User.objects.filter(userprofile__user_type='teacher')
+    authorized_teachers = camera.get_authorized_teachers()
+    unauthorized_teachers = all_teachers.exclude(id__in=authorized_teachers.values_list('id', flat=True))
+    
+    context = {
+        'camera': camera,
+        'authorized_teachers': authorized_teachers,
+        'unauthorized_teachers': unauthorized_teachers,
+    }
+    return render(request, 'cameras/manage_permissions.html', context)
+

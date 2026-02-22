@@ -18,6 +18,8 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'corsheaders',
     'cameras',  # Need Camera model
+    'mobile_cameras',  # Need MobileCamera model
+    'accounts',  # Need UserProfile model for mobile camera permissions
     'camera_api',
 ]
 

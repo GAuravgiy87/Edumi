@@ -18,6 +18,56 @@
 
 ## 📅 Update Timeline
 
+### 🎯 **Phase 13: Mobile Camera Integration with Camera Service** ✅
+
+**Date**: February 22, 2026
+
+**Issue**: Mobile camera feeds not using camera service on port 8001
+
+**Problem Details**:
+- Mobile cameras were streaming directly from main app (port 8000)
+- User has DroidCam running on 192.168.29.220:4747
+- Camera service already had mobile camera support but wasn't being used
+- Inconsistent architecture (RTSP cameras used port 8001, mobile cameras used port 8000)
+
+**Solution**:
+```
+Updated mobile_cameras app to proxy all feeds through camera service:
+
+1. Camera Service (Port 8001)
+   - Added MobileCameraStreamer class for HTTP/MJPEG streaming
+   - Background threading for efficient frame processing
+   - Frame optimization (640x360, 60% JPEG quality)
+   - Routes: /api/mobile-cameras/<id>/feed/ and /test/
+
+2. Mobile Cameras App (Port 8000)
+   - Updated mobile_camera_feed() to proxy to camera service
+   - Updated test_mobile_camera() to use camera service
+   - Removed direct streaming code (cv2, numpy)
+   - All feeds now go through camera service
+
+3. Architecture Flow:
+   📱 Mobile Camera → 🔧 Camera Service (8001) → 🌐 Main App (8000) → 👤 User
+```
+
+**Files Modified**:
+- `camera_service/camera_api/views.py` - Added mobile camera streaming
+- `camera_service/camera_api/urls.py` - Added mobile camera routes
+- `mobile_cameras/views.py` - Updated to proxy to camera service
+- `mobile_cameras/templates/mobile_cameras/test_feed.html` - Updated UI
+- `RUN.md` - Added mobile camera setup guide
+- `MOBILE_CAMERA_INTEGRATION.md` - Complete integration documentation
+- `test_mobile_camera_integration.py` - Integration test script
+
+**Benefits**:
+- ✅ Consistent architecture (all cameras use port 8001)
+- ✅ Optimized streaming with frame processing
+- ✅ Clean separation of concerns
+- ✅ Better performance and scalability
+- ✅ Easier to maintain and debug
+
+---
+
 ### 🎯 **Phase 1: Initial Architecture Setup**
 
 #### ✅ Microservices Architecture Implementation
@@ -861,3 +911,553 @@ For issues, questions, or contributions:
 [⬆ Back to Top](#-edumi---update-log)
 
 </div>
+
+
+---
+
+### 🎯 **Phase 9: Profile Section Enhancement**
+
+#### ✅ Enhanced Profile Pages for All User Roles
+
+**Issue**: Profile pages needed better visual presentation with role-specific information
+
+**Problem Details**:
+- Basic profile layout without role distinction
+- No visual indicators for different user types (Admin, Teacher, Student)
+- Missing profile completion tracking
+- Profile pictures not prominently displayed
+- No role-specific statistics or information
+
+**Solution**:
+```
+Enhanced profile system with:
+
+1. Role-Specific Visual Design
+   - Admin: Red gradient theme with system statistics
+   - Teacher: Purple gradient with teaching metrics
+   - Student: Green gradient with learning progress
+   - Animated role badges with icons
+   - Color-coded profile covers
+
+2. Profile Picture Enhancement
+   - Larger, more prominent avatar display
+   - Hover effects with role-colored glow
+   - Fallback to generated avatars with user initials
+   - Preview in edit mode with live updates
+
+3. Admin Profile Features
+   - Total users count
+   - Total meetings statistics
+   - Live meetings indicator
+   - Camera system overview
+   - Full access level display
+   - System administrator badge
+
+4. Teacher Profile Features
+   - Total meetings created
+   - Live meetings count
+   - Completed meetings
+   - Department and specialization
+   - Employee ID display
+   - Join date tracking
+
+5. Student Profile Features
+   - Enrolled courses count
+   - Completed assignments
+   - Meetings attended
+   - Student ID display
+   - Grade level
+   - Enrollment date
+
+6. Profile Completion Tracker
+   - Visual progress bar
+   - Percentage calculation
+   - Completion prompts
+   - Success indicator at 100%
+```
+
+**Files Modified**:
+- ✏️ `templates/accounts/profile.html` - Enhanced layout with role-specific sections
+- ✏️ `templates/accounts/edit_profile.html` - Added profile picture preview
+- ✏️ `accounts/views.py` - Added admin statistics and completion calculation
+- ✏️ `static/css/profile.css` - Role-specific styling and animations
+- ✏️ `static/css/forms.css` - Profile picture preview styling
+
+**Technical Implementation**:
+```python
+# accounts/views.py - Profile completion calculation
+completion = 0
+if profile_user.first_name: completion += 15
+if profile_user.last_name: completion += 15
+if profile_user.email: completion += 10
+if profile.bio: completion += 20
+if profile.phone: completion += 10
+if profile.date_of_birth: completion += 10
+if profile.address: completion += 10
+if profile.profile_picture: completion += 10
+
+# Admin statistics
+if profile_user.is_superuser or profile_user.username == 'Admin':
+    stats['total_users'] = User.objects.count()
+    stats['total_meetings'] = Meeting.objects.count()
+    stats['live_meetings'] = Meeting.objects.filter(status='live').count()
+    stats['total_cameras'] = Camera.objects.count()
+```
+
+**CSS Enhancements**:
+```css
+/* Role-specific cover gradients */
+.profile-header[data-role="admin"] .profile-cover {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+}
+
+.profile-header[data-role="teacher"] .profile-cover {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.profile-header[data-role="student"] .profile-cover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Animated role badges */
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile avatar glow effect */
+.profile-avatar:hover::after {
+    opacity: 1;
+}
+```
+
+**Features Added**:
+- ✅ Role-specific color themes (Red/Purple/Green)
+- ✅ Animated role badges with SVG icons
+- ✅ Profile completion progress bar
+- ✅ Admin system statistics dashboard
+- ✅ Teacher teaching metrics
+- ✅ Student learning progress
+- ✅ Profile picture preview in edit mode
+- ✅ Hover effects and animations
+- ✅ Responsive design for all screen sizes
+- ✅ Empty state handling with prompts
+
+**Result**: ✅ Professional, role-specific profile pages with comprehensive information display
+
+---
+
+### 📝 **Note on IDE Warnings**
+
+**JavaScript Errors in meeting_room.html (Lines 118, 120, 122)**:
+
+These are **false positives** from the IDE not recognizing Django template syntax:
+```javascript
+const meetingId = {{ meeting.id }};  // IDE sees {{ }} as syntax error
+const currentUserId = {{ user.id }};
+const isHost = {% if is_host %}true{% else %}false{% endif %};
+```
+
+**Status**: ✅ Code is correct - Django renders these properly at runtime
+**Action**: No fix needed - these warnings can be safely ignored
+
+
+
+---
+
+### 🎯 **Phase 10: Camera Permission System**
+
+#### ✅ Implemented Role-Based Camera Access Control
+
+**Issue**: All teachers could add and access all cameras without restrictions
+
+**Problem Details**:
+- No permission system for camera access
+- Teachers could add cameras (should be admin-only)
+- No way to control which teachers can access specific cameras
+- Security concern with unrestricted camera access
+
+**Solution**:
+```
+Implemented comprehensive permission system:
+
+1. Admin-Only Camera Management
+   - Only admins can add new cameras
+   - Only admins can delete cameras
+   - Only admins can grant/revoke permissions
+
+2. Permission-Based Access
+   - Teachers need explicit permission to access cameras
+   - Admins can grant access to specific teachers
+   - Admins can revoke access anytime
+   - Students can view all active cameras
+
+3. Permission Management UI
+   - Dedicated permission management page per camera
+   - Visual list of authorized/unauthorized teachers
+   - One-click grant/revoke buttons
+   - Real-time permission updates
+
+4. Database Model
+   - CameraPermission model with foreign keys
+   - Tracks who granted permission and when
+   - Unique constraint (camera + teacher)
+   - Cascade deletion when camera removed
+```
+
+**Files Modified**:
+- ✏️ `cameras/models.py` - Added CameraPermission model
+- ✏️ `cameras/views.py` - Updated permission checks and added management views
+- ✏️ `cameras/urls.py` - Added permission management routes
+- ✏️ `cameras/admin.py` - Registered CameraPermission in admin
+- ✏️ `templates/cameras/admin_dashboard.html` - Added permission button and count
+- ✏️ Created `templates/cameras/manage_permissions.html` - Permission management UI
+- ✏️ Created `cameras/templatetags/camera_extras.py` - Template filter for dictionary access
+- ✏️ Created `cameras/migrations/0002_camerapermission.py` - Database migration
+
+**Technical Implementation**:
+```python
+# cameras/models.py - Permission model
+class CameraPermission(models.Model):
+    camera = models.ForeignKey(Camera, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    granted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    granted_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('camera', 'teacher')
+
+# cameras/models.py - Permission check method
+def has_permission(self, user):
+    if user.username == 'Admin' or user.is_superuser:
+        return True
+    return CameraPermission.objects.filter(camera=self, teacher=user).exists()
+
+# cameras/views.py - Permission-based filtering
+def can_view_camera(user, camera):
+    if is_admin(user):
+        return True
+    if hasattr(user, 'userprofile') and user.userprofile.user_type == 'teacher':
+        return camera.has_permission(user)
+    if hasattr(user, 'userprofile') and user.userprofile.user_type == 'student':
+        return camera.is_active
+    return False
+```
+
+**New Routes**:
+```python
+# Grant permission to teacher
+POST /cameras/grant-permission/<camera_id>/
+    - Admin only
+    - Requires teacher_id in POST data
+    - Creates CameraPermission record
+
+# Revoke permission from teacher
+POST /cameras/revoke-permission/<camera_id>/<teacher_id>/
+    - Admin only
+    - Deletes CameraPermission record
+
+# Manage permissions page
+GET /cameras/manage-permissions/<camera_id>/
+    - Admin only
+    - Shows authorized and unauthorized teachers
+    - Provides grant/revoke interface
+```
+
+**Features Added**:
+- ✅ Admin-only camera addition
+- ✅ Permission-based camera access for teachers
+- ✅ Visual permission management interface
+- ✅ Grant/revoke permissions with one click
+- ✅ Permission count display on admin dashboard
+- ✅ Automatic permission cleanup on camera deletion
+- ✅ Students can view all active cameras
+- ✅ Teachers see only authorized cameras in live monitor
+- ✅ Audit trail (who granted permission and when)
+
+**Security Improvements**:
+- ✅ Restricted camera management to admins only
+- ✅ Explicit permission required for teacher access
+- ✅ Permission checks on all camera views
+- ✅ 403 Forbidden response for unauthorized access
+- ✅ CSRF protection on permission changes
+
+**Result**: ✅ Secure, role-based camera access control system with admin-managed permissions
+
+
+
+---
+
+### 🎯 **Phase 11: Mobile Camera Support (IP Webcam & DroidCam)**
+
+#### ✅ Added Separate Section for Mobile IP Cameras
+
+**Issue**: Need support for mobile phone cameras (IP Webcam for Android, DroidCam for iPhone)
+
+**Problem Details**:
+- RTSP cameras are expensive and require dedicated hardware
+- Mobile phones can be used as cameras but work on different protocols (HTTP/MJPEG)
+- Different ports and stream paths than RTSP cameras
+- Need separate management interface for mobile cameras
+
+**Solution**:
+```
+Created complete mobile camera system:
+
+1. Separate Mobile Camera Model
+   - Support for IP Webcam (Android) - port 8080, path /video
+   - Support for DroidCam (iPhone/Android) - port 4747, path /mjpegfeed
+   - Support for other mobile camera apps
+   - HTTP/MJPEG streaming instead of RTSP
+   - Configurable ports and stream paths
+
+2. Dedicated Mobile Camera Dashboard
+   - Separate from RTSP camera dashboard
+   - Visual indicators for camera type (Android/iPhone)
+   - Quick navigation between RTSP and mobile cameras
+   - Test connection functionality
+   - Permission management per mobile camera
+
+3. Permission System for Mobile Cameras
+   - Same permission model as RTSP cameras
+   - Admin-only management
+   - Teacher-specific access control
+   - Students can view all active mobile cameras
+
+4. Mobile Camera Streaming
+   - HTTP/MJPEG stream handling
+   - Frame decoding and re-encoding
+   - Efficient streaming with compression
+   - Automatic reconnection on failure
+```
+
+**Files Created**:
+- ✏️ `templates/cameras/mobile_camera_dashboard.html` - Mobile camera management UI
+- ✏️ `templates/cameras/add_mobile_camera.html` - Add mobile camera form
+- ✏️ `templates/cameras/view_mobile_camera.html` - View mobile camera feed
+- ✏️ `templates/cameras/manage_mobile_permissions.html` - Permission management
+- ✏️ `cameras/migrations/0003_mobilecamera_mobilecamerapermission.py` - Database migration
+
+**Files Modified**:
+- ✏️ `cameras/models.py` - Added MobileCamera and MobileCameraPermission models
+- ✏️ `cameras/views.py` - Added mobile camera views and streaming logic
+- ✏️ `cameras/urls.py` - Added mobile camera routes
+- ✏️ `cameras/admin.py` - Registered mobile camera models
+- ✏️ `templates/cameras/admin_dashboard.html` - Added mobile camera navigation button
+
+**Technical Implementation**:
+```python
+# cameras/models.py - Mobile Camera Model
+class MobileCamera(models.Model):
+    CAMERA_TYPE_CHOICES = (
+        ('ip_webcam', 'IP Webcam (Android)'),
+        ('droidcam', 'DroidCam (iPhone)'),
+        ('other', 'Other Mobile Camera'),
+    )
+    
+    name = CharField
+    camera_type = CharField(choices=CAMERA_TYPE_CHOICES)
+    ip_address = CharField
+    port = IntegerField(default=8080)
+    stream_path = CharField(default='/video')
+    username = CharField(blank=True)
+    password = CharField(blank=True)
+    is_active = BooleanField
+    
+    def get_stream_url(self):
+        if self.username and self.password:
+            return f"http://{self.username}:{self.password}@{self.ip_address}:{self.port}{self.stream_path}"
+        return f"http://{self.ip_address}:{self.port}{self.stream_path}"
+
+# cameras/views.py - Mobile Camera Streaming
+def mobile_camera_feed(request, mobile_camera_id):
+    mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
+    
+    def generate_frames():
+        stream_url = mobile_camera.get_stream_url()
+        response = requests.get(stream_url, stream=True, timeout=30)
+        
+        bytes_data = bytes()
+        for chunk in response.iter_content(chunk_size=1024):
+            bytes_data += chunk
+            a = bytes_data.find(b'\xff\xd8')  # JPEG start
+            b = bytes_data.find(b'\xff\xd9')  # JPEG end
+            
+            if a != -1 and b != -1:
+                jpg = bytes_data[a:b+2]
+                bytes_data = bytes_data[b+2:]
+                
+                img = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                if img is not None:
+                    img = cv2.resize(img, (960, 540))
+                    ret, jpeg = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 75])
+                    if ret:
+                        yield (b'--frame\r\n'
+                               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+    
+    return StreamingHttpResponse(generate_frames(), 
+                                content_type='multipart/x-mixed-replace; boundary=frame')
+```
+
+**New Routes**:
+```python
+# Mobile Camera Management
+GET  /cameras/mobile-dashboard/                    - Mobile camera dashboard
+GET  /cameras/add-mobile-camera/                   - Add mobile camera form
+POST /cameras/add-mobile-camera/                   - Create mobile camera
+POST /cameras/delete-mobile-camera/<id>/           - Delete mobile camera
+GET  /cameras/mobile-camera-feed/<id>/             - Stream mobile camera
+GET  /cameras/view-mobile-camera/<id>/             - View mobile camera page
+GET  /cameras/test-mobile-camera/<id>/             - Test mobile camera connection
+POST /cameras/grant-mobile-permission/<id>/        - Grant teacher access
+POST /cameras/revoke-mobile-permission/<id>/<tid>/ - Revoke teacher access
+GET  /cameras/manage-mobile-permissions/<id>/      - Permission management page
+```
+
+**Setup Instructions**:
+```
+For IP Webcam (Android):
+1. Install "IP Webcam" app from Play Store
+2. Connect phone to same WiFi as server
+3. Start server in app
+4. Note IP address and port (default 8080)
+5. Add camera in EduMi with path /video
+
+For DroidCam (iPhone/Android):
+1. Install "DroidCam" app
+2. Connect phone to same WiFi as server
+3. Start DroidCam
+4. Note IP address and port (default 4747)
+5. Add camera in EduMi with path /mjpegfeed
+```
+
+**Features Added**:
+- ✅ Separate mobile camera dashboard
+- ✅ Support for IP Webcam (Android)
+- ✅ Support for DroidCam (iPhone)
+- ✅ HTTP/MJPEG streaming
+- ✅ Configurable ports and paths
+- ✅ Auto-detection of camera type defaults
+- ✅ Test connection functionality
+- ✅ Permission system for mobile cameras
+- ✅ Visual camera type badges
+- ✅ Setup instructions in UI
+- ✅ Efficient frame processing
+- ✅ Optional authentication support
+
+**Benefits**:
+- ✅ Cost-effective camera solution using existing phones
+- ✅ Easy setup with mobile apps
+- ✅ Separate management from RTSP cameras
+- ✅ Same permission model as RTSP cameras
+- ✅ Support for multiple mobile camera apps
+- ✅ Flexible configuration options
+
+**Result**: ✅ Complete mobile camera support with dedicated dashboard and permission system
+
+
+
+---
+
+### 🎯 **Phase 12: Separated Mobile Cameras into Dedicated App**
+
+#### ✅ Created Standalone Mobile Cameras Django App
+
+**Issue**: Mobile cameras were mixed with RTSP cameras in the same app
+
+**Problem Details**:
+- Mobile cameras (HTTP/MJPEG) and RTSP cameras are fundamentally different
+- Different protocols, ports, and streaming methods
+- Mixed code made maintenance difficult
+- Harder to scale and manage separately
+
+**Solution**:
+```
+Created completely separate Django app for mobile cameras:
+
+1. New Django App Structure
+   - mobile_cameras/ - Standalone Django app
+   - Separate models, views, URLs, admin
+   - Independent templates directory
+   - Own migrations and database tables
+
+2. Clean Separation
+   - cameras app: RTSP cameras only
+   - mobile_cameras app: Mobile IP cameras only
+   - No code overlap or dependencies
+   - Each app can be developed independently
+
+3. URL Structure
+   - RTSP Cameras: /cameras/*
+   - Mobile Cameras: /mobile-cameras/*
+   - Clear separation in routing
+
+4. Database Migration
+   - Moved MobileCamera and MobileCameraPermission models
+   - Created new migrations in mobile_cameras app
+   - Removed models from cameras app
+   - Data preserved during migration
+```
+
+**Files Created**:
+- ✏️ `mobile_cameras/` - New Django app directory
+- ✏️ `mobile_cameras/models.py` - MobileCamera and MobileCameraPermission models
+- ✏️ `mobile_cameras/views.py` - All mobile camera views
+- ✏️ `mobile_cameras/urls.py` - Mobile camera URL patterns
+- ✏️ `mobile_cameras/admin.py` - Admin configuration
+- ✏️ `mobile_cameras/apps.py` - App configuration
+- ✏️ `mobile_cameras/templates/mobile_cameras/` - Template directory
+- ✏️ `mobile_cameras/migrations/0001_initial.py` - Initial migration
+
+**Files Modified**:
+- ✏️ `school_project/settings.py` - Added mobile_cameras to INSTALLED_APPS
+- ✏️ `school_project/urls.py` - Added mobile_cameras URL patterns
+- ✏️ `cameras/models.py` - Removed mobile camera models
+- ✏️ `cameras/views.py` - Removed mobile camera views
+- ✏️ `cameras/urls.py` - Removed mobile camera URLs
+- ✏️ `cameras/admin.py` - Removed mobile camera admin
+- ✏️ `cameras/migrations/0004_*.py` - Migration to remove mobile models
+- ✏️ `templates/cameras/admin_dashboard.html` - Updated mobile camera link
+
+**URL Changes**:
+```python
+# Old URLs (mixed in cameras app)
+/cameras/mobile-dashboard/
+/cameras/add-mobile-camera/
+/cameras/mobile-camera-feed/<id>/
+
+# New URLs (separate mobile_cameras app)
+/mobile-cameras/dashboard/
+/mobile-cameras/add/
+/mobile-cameras/feed/<id>/
+```
+
+**Benefits**:
+- ✅ Clear separation of concerns
+- ✅ Easier to maintain and debug
+- ✅ Independent development cycles
+- ✅ Better code organization
+- ✅ Scalable architecture
+- ✅ Can deploy apps separately if needed
+- ✅ Cleaner URL structure
+- ✅ No code conflicts between camera types
+
+**App Structure**:
+```
+cameras/                    # RTSP Cameras
+├── models.py              # Camera, CameraPermission
+├── views.py               # RTSP streaming logic
+├── urls.py                # /cameras/*
+└── templates/cameras/     # RTSP templates
+
+mobile_cameras/            # Mobile IP Cameras
+├── models.py              # MobileCamera, MobileCameraPermission
+├── views.py               # HTTP/MJPEG streaming logic
+├── urls.py                # /mobile-cameras/*
+└── templates/mobile_cameras/  # Mobile templates
+```
+
+**Result**: ✅ Clean, modular architecture with separate apps for different camera types
+

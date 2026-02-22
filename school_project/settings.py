@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'channels',
     'accounts',
     'pages',
-    'cameras',  # Camera management only, streaming handled by camera service
+    'cameras',  # RTSP Camera management
+    'mobile_cameras',  # Mobile Camera management (IP Webcam, DroidCam)
     'meetings',
 ]
 

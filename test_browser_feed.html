@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Mobile Camera Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        img {
+            width: 100%;
+            border: 2px solid #333;
+            background: #000;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mobile Camera Feed Test</h1>
+        
+        <div class="info">
+            <p><strong>Camera ID:</strong> 5</p>
+            <p><strong>Feed URL:</strong> <span id="feedUrl"></span></p>
+            <p><strong>Status:</strong> <span id="status">Loading...</span></p>
+        </div>
+        
+        <h2>Live Feed:</h2>
+        <img id="cameraFeed" alt="Camera Feed">
+        
+        <div style="margin-top: 20px;">
+            <button onclick="reloadFeed()">Reload Feed</button>
+            <button onclick="testDirectFeed()">Test Direct Feed</button>
+        </div>
+        
+        <div id="log" style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; max-height: 200px; overflow-y: auto;"></div>
+    </div>
+    
+    <script>
+        const cameraId = 5;
+        const feedUrl = `http://localhost:8000/mobile-cameras/feed/${cameraId}/`;
+        const cameraServiceUrl = `http://localhost:8001/api/mobile-cameras/${cameraId}/feed/`;
+        
+        document.getElementById('feedUrl').textContent = feedUrl;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function reloadFeed() {
+            log('Reloading feed...');
+            const img = document.getElementById('cameraFeed');
+            img.src = feedUrl + '?t=' + new Date().getTime();
+            document.getElementById('status').textContent = 'Reloading...';
+        }
+        
+        function testDirectFeed() {
+            log('Testing direct camera service feed...');
+            const img = document.getElementById('cameraFeed');
+            img.src = cameraServiceUrl + '?t=' + new Date().getTime();
+            document.getElementById('status').textContent = 'Testing direct...';
+        }
+        
+        // Set up image event handlers
+        const img = document.getElementById('cameraFeed');
+        
+        img.onload = function() {
+            log('✓ Image loaded successfully');
+            document.getElementById('status').textContent = 'Connected';
+            document.getElementById('status').style.color = 'green';
+        };
+        
+        img.onerror = function() {
+            log('✗ Image failed to load');
+            document.getElementById('status').textContent = 'Error';
+            document.getElementById('status').style.color = 'red';
+        };
+        
+        // Initial load
+        log('Starting feed...');
+        reloadFeed();
+    </script>
+</body>
+</html>

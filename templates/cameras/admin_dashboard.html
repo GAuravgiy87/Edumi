@@ -1,11 +1,16 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load camera_extras %}
 
 {% block content %}
 <div class="admin-container">
     <div class="admin-header">
         <h1>Edumi Admin Dashboard</h1>
         <div>
+            <a href="{% url 'mobile_cameras:dashboard' %}" class="btn-add-camera" style="margin-right: 10px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                Mobile Cameras
+            </a>
             <a href="{% url 'live_monitor' %}" class="btn-add-camera" style="margin-right: 10px; background: #00b894;">Live Monitor</a>
             <a href="{% url 'add_camera' %}" class="btn-add-camera">+ Add Camera</a>
         </div>
@@ -27,8 +32,20 @@
             </div>
             <div class="camera-actions">
                 <a href="{% url 'view_camera' camera.id %}" class="btn-view">View Feed</a>
+                <a href="{% url 'manage_permissions' camera.id %}" class="btn-permissions">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Permissions
+                </a>
                 <a href="{% url 'delete_camera' camera.id %}" class="btn-delete" onclick="return confirm('Are you sure?')">Delete</a>
             </div>
+            {% if camera_permissions %}
+            <div class="camera-permissions-info">
+                <p class="permissions-count">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    {{ camera_permissions|get_item:camera.id|length }} teacher(s) authorized
+                </p>
+            </div>
+            {% endif %}
         </div>
         {% empty %}
         <div class="no-cameras">
@@ -72,6 +89,14 @@
     font-weight: 600;
     transition: all 0.2s;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-add-camera svg {
+    width: 20px;
+    height: 20px;
 }
 
 .btn-add-camera:hover {
@@ -130,16 +155,22 @@
     display: flex;
     gap: 0.75rem;
     margin-top: 1rem;
+    flex-wrap: wrap;
 }
 
-.btn-view, .btn-delete {
+.btn-view, .btn-delete, .btn-permissions {
     flex: 1;
+    min-width: 100px;
     padding: 0.6rem;
     text-align: center;
     border-radius: 6px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .btn-view {
@@ -152,6 +183,21 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.btn-permissions {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.btn-permissions:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+}
+
+.btn-permissions svg {
+    width: 16px;
+    height: 16px;
+}
+
 .btn-delete {
     background: #dc3545;
     color: white;
@@ -160,6 +206,26 @@
 .btn-delete:hover {
     background: #c82333;
     transform: translateY(-1px);
+}
+
+.camera-permissions-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.permissions-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.permissions-count svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--primary);
 }
 
 .no-cameras {

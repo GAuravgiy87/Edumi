@@ -3,17 +3,33 @@
 
 {% block content %}
 <div class="profile-container">
-    <div class="profile-header">
+    <div class="profile-header" data-role="{% if profile_user.is_superuser or profile_user.username == 'Admin' %}admin{% elif profile %}{{ profile.user_type }}{% endif %}">
         <div class="profile-cover"></div>
         <div class="profile-info-section">
             <div class="profile-avatar">
-                <img src="{{ profile.profile_picture|default:'https://ui-avatars.com/api/?name='|add:profile_user.username|add:'&background=1877f2&color=fff&size=200' }}" alt="{{ profile_user.username }}">
+                {% if profile and profile.profile_picture and profile.profile_picture != 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=200' %}
+                <img src="{{ profile.profile_picture }}" alt="{{ profile_user.username }}" onerror="this.src='https://ui-avatars.com/api/?name={{ profile.get_display_name|urlencode }}&background=1877f2&color=fff&size=200'">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ profile.get_display_name|urlencode }}&background=1877f2&color=fff&size=200&bold=true&font-size=0.4" alt="{{ profile_user.username }}">
+                {% endif %}
             </div>
             <div class="profile-details">
                 <h1>{{ profile.get_display_name }}</h1>
                 <p class="profile-username">@{{ profile_user.username }}</p>
-                {% if profile %}
-                <span class="profile-badge badge-{{ profile.user_type }}">{{ profile.get_user_type_display }}</span>
+                {% if profile_user.is_superuser or profile_user.username == 'Admin' %}
+                <span class="profile-badge badge-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    Administrator
+                </span>
+                {% elif profile %}
+                <span class="profile-badge badge-{{ profile.user_type }}">
+                    {% if profile.user_type == 'teacher' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    {% endif %}
+                    {{ profile.get_user_type_display }}
+                </span>
                 {% endif %}
             </div>
             {% if is_own_profile %}
@@ -94,8 +110,63 @@
                 {% endif %}
             </div>
             
+            <!-- Admin Specific Info -->
+            {% if profile_user.is_superuser or profile_user.username == 'Admin' %}
+            <div class="profile-card">
+                <h2>Administrator Information</h2>
+                <div class="profile-info-grid">
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                        <div>
+                            <p class="label">Total Users</p>
+                            <p class="value">{{ stats.total_users|default:"0" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
+                        <div>
+                            <p class="label">Total Meetings</p>
+                            <p class="value">{{ stats.total_meetings|default:"0" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span>
+                        <div>
+                            <p class="label">Live Meetings</p>
+                            <p class="value">{{ stats.live_meetings|default:"0" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></span>
+                        <div>
+                            <p class="label">Total Cameras</p>
+                            <p class="value">{{ stats.total_cameras|default:"0" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg></span>
+                        <div>
+                            <p class="label">Access Level</p>
+                            <p class="value">Full Access</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+                        <div>
+                            <p class="label">Role</p>
+                            <p class="value">System Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Type Specific Info -->
-            {% if profile.user_type == 'student' %}
+            {% elif profile and profile.user_type == 'student' %}
             <div class="profile-card">
                 <h2>Student Information</h2>
                 <div class="profile-info-grid">
@@ -208,6 +279,24 @@
         </div>
         
         <div class="profile-sidebar">
+            <!-- Profile Completion -->
+            {% if is_own_profile %}
+            <div class="profile-card">
+                <h2>Profile Completion</h2>
+                <div class="completion-indicator">
+                    <div class="completion-bar">
+                        <div class="completion-fill" style="width: {{ completion }}%"></div>
+                    </div>
+                    <p class="completion-text">{{ completion }}% Complete</p>
+                    {% if completion < 100 %}
+                    <a href="{% url 'edit_profile' %}" class="completion-action">Complete Your Profile</a>
+                    {% else %}
+                    <p class="completion-success">✓ Profile Complete!</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
             <!-- Statistics -->
             <div class="profile-card">
                 <h2>Statistics</h2>

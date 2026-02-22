@@ -86,16 +86,6 @@
     </text>
   </g>
   
-  <!-- Tagline -->
-  <text x="135" y="95" 
-        font-family="'Segoe UI', Arial, sans-serif" 
-        font-size="14" 
-        font-weight="400" 
-        fill="#6b7280"
-        letter-spacing="2">
-    EDUCATIONAL MEETINGS
-  </text>
-  
   <!-- Decorative Dots -->
   <circle cx="320" cy="30" r="3" fill="#10b981" opacity="0.6">
     <animate attributeName="cy" values="30;25;30" dur="2s" repeatCount="indefinite"/>

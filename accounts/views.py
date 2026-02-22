@@ -118,9 +118,28 @@ def profile_view(request, username=None):
     # Check if viewing own profile
     is_own_profile = request.user == profile_user
     
+    # Calculate profile completion
+    completion = 0
+    if is_own_profile and profile:
+        if profile_user.first_name: completion += 15
+        if profile_user.last_name: completion += 15
+        if profile_user.email: completion += 10
+        if profile.bio: completion += 20
+        if profile.phone: completion += 10
+        if profile.date_of_birth: completion += 10
+        if profile.address: completion += 10
+        if profile.profile_picture and profile.profile_picture != 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=200':
+            completion += 10
+    
     # Get user statistics
     stats = {}
-    if profile and profile.user_type == 'teacher':
+    if profile_user.is_superuser or profile_user.username == 'Admin':
+        # Admin statistics
+        stats['total_users'] = User.objects.count()
+        stats['total_meetings'] = Meeting.objects.count()
+        stats['live_meetings'] = Meeting.objects.filter(status='live').count()
+        stats['total_cameras'] = Camera.objects.count()
+    elif profile and profile.user_type == 'teacher':
         stats['total_meetings'] = Meeting.objects.filter(teacher=profile_user).count()
         stats['live_meetings'] = Meeting.objects.filter(teacher=profile_user, status='live').count()
         stats['completed_meetings'] = Meeting.objects.filter(teacher=profile_user, status='ended').count()
@@ -134,6 +153,7 @@ def profile_view(request, username=None):
         'profile': profile,
         'is_own_profile': is_own_profile,
         'stats': stats,
+        'completion': completion,
     }
     
     return render(request, 'accounts/profile.html', context)

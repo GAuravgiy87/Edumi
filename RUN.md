@@ -18,7 +18,7 @@ EduMi consists of two microservices that run simultaneously:
 | Service | Port | Purpose |
 |---------|------|---------|
 | 🌐 **Main App** | 8000 | Authentication, meetings, dashboards, camera management |
-| 📹 **Camera Service** | 8001 | RTSP camera streaming and live feeds |
+| 📹 **Camera Service** | 8001 | RTSP & mobile camera streaming, live feeds |
 
 ---
 
@@ -126,7 +126,7 @@ Press `Ctrl+C` in each terminal window
 
 ---
 
-## 🔧 Troubleshooting
+## 🔧 General Troubleshooting
 
 ### ❌ Port Already in Use
 

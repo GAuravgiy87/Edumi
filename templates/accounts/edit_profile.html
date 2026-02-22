@@ -53,9 +53,23 @@
             
             <div class="form-group">
                 <label for="profile_picture">Profile Picture URL</label>
-                <input type="url" id="profile_picture" name="profile_picture" value="{{ profile.profile_picture }}" placeholder="https://example.com/image.jpg">
+                <input type="url" id="profile_picture" name="profile_picture" value="{{ profile.profile_picture }}" placeholder="https://example.com/image.jpg" onchange="updateProfilePreview(this.value)">
                 <small>Enter a URL to your profile picture</small>
+                <div class="profile-picture-preview">
+                    <img id="profile-preview-img" src="{{ profile.profile_picture|default:'https://ui-avatars.com/api/?name='|add:user.username|add:'&background=1877f2&color=fff&size=200' }}" alt="Profile Preview" onerror="this.src='https://ui-avatars.com/api/?name={{ user.username }}&background=1877f2&color=fff&size=200'">
+                </div>
             </div>
+            
+            <script>
+            function updateProfilePreview(url) {
+                const img = document.getElementById('profile-preview-img');
+                if (url) {
+                    img.src = url;
+                } else {
+                    img.src = 'https://ui-avatars.com/api/?name={{ user.username }}&background=1877f2&color=fff&size=200';
+                }
+            }
+            </script>
             
             {% if profile.user_type == 'student' %}
             <h3 class="section-title">Student Information</h3>

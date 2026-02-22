@@ -431,6 +431,13 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+.control-divider {
+    width: 1px;
+    height: 32px;
+    background: #5f6368;
+    margin: 0 4px;
+}
+
 .controls-left,
 .controls-center,
 .controls-right {
