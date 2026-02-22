@@ -1,10 +1,8 @@
 <div align="center">
 
-<img src="static/logo.svg" alt="EduMi Logo" width="180" height="180" />
+<img src="static/logo.svg" alt="EduMi Logo" width="400" />
 
-# 🎓 EduMi
-
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=2800&pause=2000&color=6366F1&center=true&vCenter=true&width=940&lines=Educational+Meeting+Platform;Real-Time+Video+Conferencing;Built+for+Schools+%26+Universities" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=28&duration=2800&pause=2000&color=6366F1&center=true&vCenter=true&width=940&lines=Real-Time+Video+Conferencing+Platform;Built+for+Schools+%26+Universities;WebRTC+%7C+Django+%7C+Channels" alt="Typing SVG" />
 
 <p align="center">
   <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white" />
