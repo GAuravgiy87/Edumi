@@ -8,4 +8,5 @@ urlpatterns = [
     path('camera-feed/<int:camera_id>/', views.camera_feed, name='camera_feed'),
     path('view-camera/<int:camera_id>/', views.view_camera, name='view_camera'),
     path('test-camera/<int:camera_id>/', views.test_camera, name='test_camera'),
+    path('live-monitor/', views.live_monitor, name='live_monitor'),
 ]

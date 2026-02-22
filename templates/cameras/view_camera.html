@@ -56,6 +56,9 @@
 
 <script>
 let imageLoaded = false;
+let loadAttempts = 0;
+const maxAttempts = 3;
+let serverCheckInterval;
 
 function testCamera() {
     const statusMsg = document.getElementById('status-message');
@@ -78,32 +81,105 @@ function testCamera() {
             }, 5000);
         })
         .catch(error => {
-            statusMsg.textContent = '✗ Error testing camera: ' + error;
+            statusMsg.textContent = '✗ Server is offline or camera unreachable';
             statusMsg.className = 'status-message error';
+            handleServerOffline();
         });
+}
+
+function handleServerOffline() {
+    const overlay = document.getElementById('loading-overlay');
+    const status = document.getElementById('camera-status');
+    
+    overlay.innerHTML = '<p style="color: #d63031; font-size: 1.2rem;">⚠ Server is Offline<br><small style="font-size: 0.9rem;">Please start the Django server</small></p>';
+    status.innerHTML = '● Server Offline';
+    status.className = 'value status-inactive';
+    
+    // Stop checking
+    if (serverCheckInterval) {
+        clearInterval(serverCheckInterval);
+    }
 }
 
 function handleImageError() {
     const overlay = document.getElementById('loading-overlay');
     const status = document.getElementById('camera-status');
+    const img = document.getElementById('camera-stream');
     
-    if (!imageLoaded) {
-        overlay.innerHTML = '<p style="color: #d63031;">⚠ Cannot connect to camera<br><small>Check if camera is online and RTSP URL is correct</small></p>';
-        status.innerHTML = '● Offline';
-        status.className = 'value status-inactive';
+    loadAttempts++;
+    console.log('Image load error, attempt:', loadAttempts);
+    
+    if (loadAttempts < maxAttempts) {
+        // Retry loading
+        setTimeout(() => {
+            const timestamp = new Date().getTime();
+            img.src = img.src.split('?')[0] + '?t=' + timestamp;
+        }, 2000);
+    } else {
+        // Check if server is offline
+        fetch('{% url "test_camera" camera.id %}')
+            .then(response => {
+                // Server is online, but camera is offline
+                overlay.innerHTML = '<p style="color: #d63031;">⚠ Cannot connect to camera<br><small>Check if camera is online and RTSP URL is correct</small></p>';
+                status.innerHTML = '● Camera Offline';
+                status.className = 'value status-inactive';
+            })
+            .catch(error => {
+                // Server is offline
+                handleServerOffline();
+            });
     }
 }
 
 // Hide loading overlay when image loads
-document.getElementById('camera-stream').addEventListener('load', function() {
+const cameraStream = document.getElementById('camera-stream');
+
+cameraStream.addEventListener('load', function() {
+    console.log('Image loaded successfully');
     imageLoaded = true;
-    document.getElementById('loading-overlay').style.display = 'none';
-    document.getElementById('camera-status').innerHTML = '● Active';
-    document.getElementById('camera-status').className = 'value status-active';
+    const overlay = document.getElementById('loading-overlay');
+    const status = document.getElementById('camera-status');
+    
+    // Hide overlay with fade effect
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 300);
+    
+    status.innerHTML = '● Active';
+    status.className = 'value status-active';
 });
 
-// Auto-test connection on page load
-setTimeout(testCamera, 1000);
+// Check server status periodically
+function checkServerStatus() {
+    fetch('{% url "test_camera" camera.id %}')
+        .then(response => {
+            // Server is online
+            console.log('Server is online');
+        })
+        .catch(error => {
+            // Server is offline
+            console.log('Server is offline');
+            handleServerOffline();
+        });
+}
+
+// Initial server check
+setTimeout(() => {
+    checkServerStatus();
+}, 1000);
+
+// Check every 5 seconds
+serverCheckInterval = setInterval(checkServerStatus, 5000);
+
+// Force hide loading overlay after 10 seconds if image is loading
+setTimeout(() => {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay.style.display !== 'none' && !imageLoaded) {
+        console.log('Force hiding overlay after timeout');
+        handleImageError();
+    }
+}, 10000);
 </script>
 
 <style>
@@ -232,6 +308,8 @@ setTimeout(testCamera, 1000);
     align-items: center;
     justify-content: center;
     color: white;
+    transition: opacity 0.3s ease;
+    z-index: 10;
 }
 
 .spinner {

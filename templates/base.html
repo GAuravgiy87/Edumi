@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{% block title %}Edumi - Educational Management System{% endblock %}</title>
     {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,103 +15,123 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <nav>
         <div class="nav-container">
             {% if user.is_authenticated %}
-                <div class="nav-left">
-                    <a href="{% url 'home' %}" class="nav-brand">Edumi</a>
-                    
-                    {% if user.username == 'Admin' or user.is_superuser %}
-                        <a href="{% url 'admin_panel' %}">Admin Panel</a>
-                        <a href="{% url 'user_management' %}">Users</a>
-                        <a href="{% url 'admin_dashboard' %}">Cameras</a>
-                        <a href="{% url 'teacher_meetings' %}">Meetings</a>
-                    {% elif user.userprofile.user_type == 'teacher' %}
-                        <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
-                        <a href="{% url 'teacher_meetings' %}">Meetings</a>
-                        <a href="{% url 'create_meeting' %}">+ New Meeting</a>
-                    {% elif user.userprofile.user_type == 'student' %}
-                        <a href="{% url 'student_dashboard' %}">Dashboard</a>
-                        <a href="{% url 'student_meetings' %}">Meetings</a>
-                    {% endif %}
-                </div>
-                
-                <div class="nav-right">
-                    <div class="nav-profile-dropdown">
-                        <button class="nav-profile-btn" onclick="toggleProfileDropdown()">
-                            <div class="profile-avatar-small">
-                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6366f1&color=fff&size=40" alt="{{ user.username }}">
-                            </div>
-                            <span class="profile-name">{{ user.username }}</span>
-                            <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                <path d="M4 6l4 4 4-4z"/>
-                            </svg>
-                        </button>
-                        <div class="profile-dropdown-menu" id="profileDropdown">
-                            <div class="dropdown-header">
-                                <div class="dropdown-user-info">
-                                    <p class="dropdown-username">{{ user.username }}</p>
-                                    <p class="dropdown-email">{{ user.email|default:"No email" }}</p>
-                                </div>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="{% url 'profile_view' user.username %}" class="dropdown-item">
-                                <span class="dropdown-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                </span>
-                                <span>My Profile</span>
-                            </a>
-                            <a href="{% url 'edit_profile' %}" class="dropdown-item">
-                                <span class="dropdown-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2-5.2l-4.2 4.2m0 6l4.2 4.2"></path></svg>
-                                </span>
-                                <span>Settings</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="{% url 'logout' %}" class="dropdown-item logout-item">
-                                <span class="dropdown-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                                </span>
-                                <span>Logout</span>
-                            </a>
+            <div class="nav-left">
+                <a href="{% url 'home' %}" class="nav-brand">Edumi</a>
+
+                {% if user.username == 'Admin' or user.is_superuser %}
+                <a href="{% url 'admin_panel' %}">Admin Panel</a>
+                <a href="{% url 'user_management' %}">Users</a>
+                <a href="{% url 'admin_dashboard' %}">Cameras</a>
+                <a href="{% url 'teacher_meetings' %}">Meetings</a>
+                {% elif user.userprofile.user_type == 'teacher' %}
+                <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
+                <a href="{% url 'admin_dashboard' %}">Cameras</a>
+                <a href="{% url 'teacher_meetings' %}">Meetings</a>
+                <a href="{% url 'create_meeting' %}">+ New Meeting</a>
+                {% elif user.userprofile.user_type == 'student' %}
+                <a href="{% url 'student_dashboard' %}">Dashboard</a>
+                <a href="{% url 'live_monitor' %}">Live Cameras</a>
+                <a href="{% url 'student_meetings' %}">Meetings</a>
+                {% endif %}
+            </div>
+
+            <div class="nav-right">
+                <div class="nav-profile-dropdown">
+                    <button class="nav-profile-btn" onclick="toggleProfileDropdown()">
+                        <div class="profile-avatar-small">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6366f1&color=fff&size=40"
+                                alt="{{ user.username }}">
                         </div>
+                        <span class="profile-name">{{ user.username }}</span>
+                        <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4 6l4 4 4-4z" />
+                        </svg>
+                    </button>
+                    <div class="profile-dropdown-menu" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-info">
+                                <p class="dropdown-username">{{ user.username }}</p>
+                                <p class="dropdown-email">{{ user.email|default:"No email" }}</p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'profile_view' user.username %}" class="dropdown-item">
+                            <span class="dropdown-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="{% url 'edit_profile' %}" class="dropdown-item">
+                            <span class="dropdown-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2-5.2l-4.2 4.2m0 6l4.2 4.2">
+                                    </path>
+                                </svg>
+                            </span>
+                            <span>Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'logout' %}" class="dropdown-item logout-item">
+                            <span class="dropdown-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span>Logout</span>
+                        </a>
                     </div>
                 </div>
+            </div>
             {% else %}
-                <div class="nav-left">
-                    <a href="{% url 'login' %}" class="nav-brand">Edumi</a>
-                </div>
-                <div class="nav-right">
-                    <a href="{% url 'login' %}">Login</a>
-                    <a href="{% url 'register' %}" class="nav-logout">Sign Up</a>
-                </div>
+            <div class="nav-left">
+                <a href="{% url 'login' %}" class="nav-brand">Edumi</a>
+            </div>
+            <div class="nav-right">
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}" class="nav-logout">Sign Up</a>
+            </div>
             {% endif %}
         </div>
     </nav>
-    
+
     {% block content %}{% endblock %}
-    
+
     <script src="{% static 'js/eyes.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/icons.js' %}"></script>
     <script>
-    // Profile dropdown toggle
-    function toggleProfileDropdown() {
-        const dropdown = document.getElementById('profileDropdown');
-        dropdown.classList.toggle('show');
-    }
-    
-    // Close dropdown when clicking outside
-    window.addEventListener('click', function(e) {
-        if (!e.target.closest('.nav-profile-dropdown')) {
+        // Profile dropdown toggle
+        function toggleProfileDropdown() {
             const dropdown = document.getElementById('profileDropdown');
-            if (dropdown) {
-                dropdown.classList.remove('show');
-            }
+            dropdown.classList.toggle('show');
         }
-    });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (e) {
+            if (!e.target.closest('.nav-profile-dropdown')) {
+                const dropdown = document.getElementById('profileDropdown');
+                if (dropdown) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

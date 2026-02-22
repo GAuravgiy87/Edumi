@@ -33,10 +33,12 @@
                 <div class="sidebar-header">
                     <div class="sidebar-tabs">
                         <button class="sidebar-tab active" onclick="switchSidebarTab('people')">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span> People
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span>People</span>
                         </button>
                         <button class="sidebar-tab" onclick="switchSidebarTab('chat')">
-                            <span><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span></span> Chat
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            <span>Chat</span>
                         </button>
                     </div>
                     <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
@@ -57,9 +59,9 @@
                                     <div class="participant-name">{{ user.username }} (You)</div>
                                     {% if is_host %}<span class="host-label">Host</span>{% endif %}
                                 </div>
-                                <div class="participant-status">
-                                    <span class="status-icon" id="localMicStatus"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span></span>
-                                    <span class="status-icon" id="localCamStatus"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></span></span>
+                                <div class="participant-status" id="localStatus">
+                                    <svg id="localMicStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                    <svg id="localCamStatus" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
                                 </div>
                             </div>
                         </div>
@@ -87,36 +89,36 @@
             
             <div class="controls-center">
                 <button class="control-button" id="micBtn" onclick="toggleMic()" title="Microphone">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                 </button>
                 
                 <button class="control-button" id="camBtn" onclick="toggleCamera()" title="Camera">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
                 </button>
                 
                 {% if meeting.allow_screen_share %}
                 <button class="control-button" id="screenBtn" onclick="toggleScreenShare()" title="Share screen">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                 </button>
                 {% endif %}
                 
                 <button class="control-button danger" onclick="leaveMeeting()" title="Leave call">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                 </button>
             </div>
             
             <div class="controls-right">
                 <button class="control-button" onclick="toggleSidebar()" title="Show everyone">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </button>
                 
                 <button class="control-button" onclick="toggleSidebar(); switchSidebarTab('chat')" title="Chat">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     <span class="notification-badge" id="chatBadge" style="display: none;">0</span>
                 </button>
                 
                 <button class="control-button" onclick="toggleSettings()" title="Settings">
-                    <span class="control-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2-5.2l-4.2 4.2m0 6l4.2 4.2"></path></svg></span></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2-5.2l-4.2 4.2m0 6l4.2 4.2"></path></svg>
                 </button>
             </div>
         </div>
@@ -151,6 +153,7 @@ let participants = {};
 let isMicOn = true;
 let isCameraOn = true;
 let isScreenSharing = false;
+let screenSharingUserId = null;
 let unreadMessages = 0;
 
 // Initialize
@@ -225,6 +228,20 @@ function connectWebSocket() {
             case 'chat':
                 handleChatMessage(data);
                 break;
+            
+            case 'screen_share_started':
+                if (data.user_id !== currentUserId) {
+                    screenSharingUserId = data.user_id;
+                    updateVideoLayout();
+                }
+                break;
+            
+            case 'screen_share_stopped':
+                if (data.user_id === screenSharingUserId) {
+                    screenSharingUserId = null;
+                    updateVideoLayout();
+                }
+                break;
         }
     };
     
@@ -265,6 +282,11 @@ async function handleUserJoined(data) {
 function handleUserLeft(data) {
     console.log('User left:', data.username);
     
+    // Check if they were screen sharing
+    if (screenSharingUserId === data.user_id) {
+        screenSharingUserId = null;
+    }
+    
     // Remove video element
     const videoEl = document.getElementById(`video-${data.user_id}`);
     if (videoEl) videoEl.remove();
@@ -278,6 +300,7 @@ function handleUserLeft(data) {
     // Remove from participants
     delete participants[data.user_id];
     updateParticipantsList();
+    updateVideoLayout();
 }
 
 async function handleOffer(data) {
@@ -361,6 +384,7 @@ function addVideoElement(userId, username, stream, isLocal) {
         videoContainer = document.createElement('div');
         videoContainer.id = `video-${userId}`;
         videoContainer.className = 'video-box';
+        videoContainer.dataset.userId = userId;
         
         const video = document.createElement('video');
         video.srcObject = stream;
@@ -379,6 +403,58 @@ function addVideoElement(userId, username, stream, isLocal) {
     } else {
         const video = videoContainer.querySelector('video');
         video.srcObject = stream;
+    }
+    
+    updateVideoLayout();
+}
+
+function updateVideoLayout() {
+    const container = document.getElementById('videoGridContainer');
+    const videoBoxes = container.querySelectorAll('.video-box');
+    const count = videoBoxes.length;
+    
+    // Remove all layout classes
+    container.className = 'video-grid-container';
+    
+    // Check if someone is screen sharing
+    if (screenSharingUserId) {
+        container.classList.add('screen-share-active');
+        
+        // Clear container
+        container.innerHTML = '';
+        
+        // Create main screen area
+        const mainScreen = document.createElement('div');
+        mainScreen.className = 'video-main-screen';
+        
+        // Create participants strip
+        const participantsStrip = document.createElement('div');
+        participantsStrip.className = 'video-participants-strip';
+        
+        // Add screen share to main area
+        const screenShareBox = document.getElementById(`video-${screenSharingUserId}`);
+        if (screenShareBox) {
+            screenShareBox.classList.add('screen-share');
+            mainScreen.appendChild(screenShareBox);
+        }
+        
+        // Add other participants to strip
+        videoBoxes.forEach(box => {
+            if (box.dataset.userId !== screenSharingUserId.toString()) {
+                box.classList.remove('screen-share');
+                participantsStrip.appendChild(box);
+            }
+        });
+        
+        container.appendChild(mainScreen);
+        container.appendChild(participantsStrip);
+    } else if (count === 1) {
+        // Single participant - full screen
+        container.classList.add('single-view');
+    } else {
+        // Grid view
+        container.classList.add('grid-view');
+        container.classList.add(`count-${Math.min(count, 10)}`);
     }
 }
 
@@ -406,8 +482,8 @@ function updateParticipantsList() {
                 <div class="participant-name">${username}</div>
             </div>
             <div class="participant-status">
-                <span class="status-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span></span>
-                <span class="status-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></span></span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
             </div>
         `;
         list.appendChild(item);
@@ -422,8 +498,17 @@ function toggleMic() {
     
     const btn = document.getElementById('micBtn');
     btn.classList.toggle('off', !isMicOn);
-    btn.querySelector('.control-icon').textContent = isMicOn ? '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span>' : '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span>';
-    document.getElementById('localMicStatus').textContent = isMicOn ? '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span>' : '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></span>';
+    
+    // Update button icon
+    const micOnIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    const micOffIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>';
+    btn.innerHTML = isMicOn ? micOnIcon : micOffIcon;
+    
+    // Update status in sidebar
+    const statusIcon = document.getElementById('localMicStatus');
+    if (statusIcon) {
+        statusIcon.outerHTML = isMicOn ? micOnIcon.replace('<svg', '<svg id="localMicStatus"') : micOffIcon.replace('<svg', '<svg id="localMicStatus"');
+    }
 }
 
 function toggleCamera() {
@@ -434,11 +519,26 @@ function toggleCamera() {
     
     const btn = document.getElementById('camBtn');
     btn.classList.toggle('off', !isCameraOn);
-    btn.querySelector('.control-icon').textContent = isCameraOn ? '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></span>' : '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></span>';
-    document.getElementById('localCamStatus').textContent = isCameraOn ? '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></span>' : '<span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></span>';
+    
+    // Update button icon
+    const camOnIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>';
+    const camOffIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path></svg>';
+    btn.innerHTML = isCameraOn ? camOnIcon : camOffIcon;
+    
+    // Update status in sidebar
+    const statusIcon = document.getElementById('localCamStatus');
+    if (statusIcon) {
+        statusIcon.outerHTML = isCameraOn ? camOnIcon.replace('<svg', '<svg id="localCamStatus"') : camOffIcon.replace('<svg', '<svg id="localCamStatus"');
+    }
 }
 
 async function toggleScreenShare() {
+    // Check if someone else is already sharing
+    if (!isScreenSharing && screenSharingUserId && screenSharingUserId !== currentUserId) {
+        alert('Someone else is already sharing their screen. Only one person can share at a time.');
+        return;
+    }
+    
     if (!isScreenSharing) {
         try {
             screenStream = await navigator.mediaDevices.getDisplayMedia({
@@ -459,13 +559,25 @@ async function toggleScreenShare() {
             if (localVideo) localVideo.srcObject = screenStream;
             
             isScreenSharing = true;
+            screenSharingUserId = currentUserId;
             document.getElementById('screenBtn').classList.add('active');
+            
+            // Notify others about screen share
+            ws.send(JSON.stringify({
+                type: 'screen_share_started',
+                user_id: currentUserId
+            }));
+            
+            updateVideoLayout();
             
             videoTrack.onended = () => {
                 stopScreenShare();
             };
         } catch (error) {
             console.error('Error sharing screen:', error);
+            if (error.name === 'NotAllowedError') {
+                alert('Screen sharing permission denied.');
+            }
         }
     } else {
         stopScreenShare();
@@ -490,13 +602,32 @@ function stopScreenShare() {
     if (localVideo) localVideo.srcObject = localStream;
     
     isScreenSharing = false;
+    if (screenSharingUserId === currentUserId) {
+        screenSharingUserId = null;
+    }
     document.getElementById('screenBtn')?.classList.remove('active');
+    
+    // Notify others
+    ws.send(JSON.stringify({
+        type: 'screen_share_stopped',
+        user_id: currentUserId
+    }));
+    
+    updateVideoLayout();
 }
 
 function toggleSidebar() {
     const sidebar = document.getElementById('meetSidebar');
     const isVisible = sidebar.style.display !== 'none';
     sidebar.style.display = isVisible ? 'none' : 'flex';
+    
+    // Adjust main container when sidebar opens/closes
+    const mainContainer = document.getElementById('videoGridContainer');
+    if (!isVisible) {
+        mainContainer.style.marginRight = '360px';
+    } else {
+        mainContainer.style.marginRight = '0';
+    }
     
     if (!isVisible && document.getElementById('chatPanel').classList.contains('active')) {
         unreadMessages = 0;

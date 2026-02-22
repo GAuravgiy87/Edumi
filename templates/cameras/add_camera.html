@@ -5,7 +5,13 @@
 <div class="add-camera-container">
     <div class="form-card-large">
         <h2>Add New Camera</h2>
-        <p class="subtitle">Enter camera details to add RTSP stream</p>
+        <p class="subtitle">Enter camera details - Stream path will be auto-detected</p>
+        
+        {% if error %}
+        <div class="alert alert-warning">
+            {{ error }}
+        </div>
+        {% endif %}
         
         <form method="post">
             {% csrf_token %}
@@ -15,10 +21,16 @@
                 <input type="text" name="name" required placeholder="e.g., Front Door Camera">
             </div>
             
-            <div class="form-group">
-                <label>Full RTSP URL</label>
-                <input type="text" name="rtsp_url" required placeholder="rtsp://username:password@ip:port/stream">
-                <small>Example: rtsp://test:dei@12@12@10.7.16.48:554/stream</small>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>IP Address</label>
+                    <input type="text" name="ip_address" required placeholder="10.7.16.48">
+                </div>
+                
+                <div class="form-group">
+                    <label>Port</label>
+                    <input type="number" name="port" value="554" required placeholder="554">
+                </div>
             </div>
             
             <div class="form-row">
@@ -29,29 +41,24 @@
                 
                 <div class="form-group">
                     <label>Password (Optional)</label>
-                    <input type="text" name="password" placeholder="Camera password">
+                    <input type="password" name="password" placeholder="Camera password">
                 </div>
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    <label>IP Address</label>
-                    <input type="text" name="ip_address" placeholder="10.7.16.48">
+            <div class="info-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                    <strong>Auto-Detection Enabled</strong>
+                    <p>The system will automatically test common RTSP paths (/live, /stream, /h264, etc.) to find the correct one for your camera.</p>
                 </div>
-                
-                <div class="form-group">
-                    <label>Port</label>
-                    <input type="number" name="port" value="554" placeholder="554">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Stream Path</label>
-                <input type="text" name="stream_path" value="/stream" placeholder="/stream">
             </div>
             
             <div class="form-actions">
-                <button type="submit" class="btn-submit">Add Camera</button>
+                <button type="submit" class="btn-submit">Add Camera & Auto-Detect Path</button>
                 <a href="{% url 'admin_dashboard' %}" class="btn-cancel">Cancel</a>
             </div>
         </form>
@@ -85,6 +92,18 @@
     margin-bottom: 2rem;
 }
 
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -96,6 +115,33 @@
     color: #6c757d;
     font-size: 0.8rem;
     margin-top: 0.3rem;
+}
+
+.info-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.info-box svg {
+    flex-shrink: 0;
+    color: #0066cc;
+}
+
+.info-box strong {
+    display: block;
+    color: #004080;
+    margin-bottom: 0.25rem;
+}
+
+.info-box p {
+    color: #004080;
+    font-size: 0.9rem;
+    margin: 0;
 }
 
 .form-actions {

@@ -5,7 +5,10 @@
 <div class="admin-container">
     <div class="admin-header">
         <h1>Edumi Admin Dashboard</h1>
-        <a href="{% url 'add_camera' %}" class="btn-add-camera">+ Add Camera</a>
+        <div>
+            <a href="{% url 'live_monitor' %}" class="btn-add-camera" style="margin-right: 10px; background: #00b894;">Live Monitor</a>
+            <a href="{% url 'add_camera' %}" class="btn-add-camera">+ Add Camera</a>
+        </div>
     </div>
     
     <div class="cameras-grid">
