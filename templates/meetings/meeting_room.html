@@ -79,48 +79,34 @@
             </div>
         </div>
         
-        <!-- Bottom Controls -->
+        <!-- Floating Controls -->
         <div class="meet-controls">
-            <div class="controls-left">
-                <div class="meeting-info-badge">
-                    <span class="info-text">{{ meeting.meeting_code }}</span>
-                </div>
-            </div>
+            <button class="control-button" id="micBtn" onclick="toggleMic()" title="Microphone">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            </button>
             
-            <div class="controls-center">
-                <button class="control-button" id="micBtn" onclick="toggleMic()" title="Microphone">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                </button>
-                
-                <button class="control-button" id="camBtn" onclick="toggleCamera()" title="Camera">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                </button>
-                
-                {% if meeting.allow_screen_share %}
-                <button class="control-button" id="screenBtn" onclick="toggleScreenShare()" title="Share screen">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                </button>
-                {% endif %}
-                
-                <button class="control-button danger" onclick="leaveMeeting()" title="Leave call">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                </button>
-            </div>
+            <button class="control-button" id="camBtn" onclick="toggleCamera()" title="Camera">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            </button>
             
-            <div class="controls-right">
-                <button class="control-button" onclick="toggleSidebar()" title="Show everyone">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                </button>
-                
-                <button class="control-button" onclick="toggleSidebar(); switchSidebarTab('chat')" title="Chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span class="notification-badge" id="chatBadge" style="display: none;">0</span>
-                </button>
-                
-                <button class="control-button" onclick="toggleSettings()" title="Settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2-5.2l-4.2 4.2m0 6l4.2 4.2"></path></svg>
-                </button>
-            </div>
+            {% if meeting.allow_screen_share %}
+            <button class="control-button" id="screenBtn" onclick="toggleScreenShare()" title="Share screen">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            </button>
+            {% endif %}
+            
+            <button class="control-button" onclick="toggleSidebar()" title="Show everyone">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </button>
+            
+            <button class="control-button" onclick="toggleSidebar(); switchSidebarTab('chat')" title="Chat">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span class="notification-badge" id="chatBadge" style="display: none;">0</span>
+            </button>
+            
+            <button class="control-button danger" onclick="leaveMeeting()" title="Leave call">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            </button>
         </div>
     </div>
 
@@ -139,10 +125,12 @@ let ws = null;
 // WebRTC configuration
 const rtcConfig = {
     iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
-    ]
+        { urls: 'stun:stun.l.google.com:19302' }
+    ],
+    iceCandidatePoolSize: 10,
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require',
+    iceTransportPolicy: 'all'
 };
 
 // State
@@ -159,17 +147,19 @@ let unreadMessages = 0;
 // Initialize
 async function init() {
     try {
-        // Get user media
+        // Get user media with lower quality for better performance
         localStream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
+                width: { ideal: 480, max: 640 },
+                height: { ideal: 360, max: 480 },
+                frameRate: { ideal: 15, max: 24 },
                 facingMode: 'user'
             },
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                autoGainControl: true
+                autoGainControl: true,
+                sampleRate: 16000
             }
         });
         
@@ -263,13 +253,28 @@ async function handleUserJoined(data) {
     // Create peer connection and send offer
     const pc = createPeerConnection(data.user_id);
     
-    // Add local stream tracks
+    // Add local stream tracks with optimized parameters
     localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
+        const sender = pc.addTrack(track, localStream);
+        
+        // Set initial encoding parameters for low latency
+        if (track.kind === 'video') {
+            const params = sender.getParameters();
+            if (!params.encodings) {
+                params.encodings = [{}];
+            }
+            params.encodings[0].maxBitrate = 500000; // 500 Kbps for camera
+            params.encodings[0].maxFramerate = 15;
+            sender.setParameters(params);
+        }
     });
     
-    // Create and send offer
-    const offer = await pc.createOffer();
+    // Create offer with low latency settings
+    const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true
+    });
+    
     await pc.setLocalDescription(offer);
     
     ws.send(JSON.stringify({
@@ -308,9 +313,20 @@ async function handleOffer(data) {
     
     const pc = createPeerConnection(data.from_user_id);
     
-    // Add local stream tracks
+    // Add local stream tracks with optimized parameters
     localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
+        const sender = pc.addTrack(track, localStream);
+        
+        // Set initial encoding parameters for low latency
+        if (track.kind === 'video') {
+            const params = sender.getParameters();
+            if (!params.encodings) {
+                params.encodings = [{}];
+            }
+            params.encodings[0].maxBitrate = 500000; // 500 Kbps for camera
+            params.encodings[0].maxFramerate = 15;
+            sender.setParameters(params);
+        }
     });
     
     await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -354,7 +370,7 @@ function createPeerConnection(userId) {
     
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
-        if (event.candidate) {
+        if (event.candidate && ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
                 type: 'ice_candidate',
                 candidate: event.candidate,
@@ -372,11 +388,14 @@ function createPeerConnection(userId) {
     
     pc.onconnectionstatechange = () => {
         console.log('Connection state:', pc.connectionState);
+        if (pc.connectionState === 'failed') {
+            console.error('Connection failed, attempting restart');
+            pc.restartIce();
+        }
     };
     
     return pc;
 }
-
 function addVideoElement(userId, username, stream, isLocal) {
     let videoContainer = document.getElementById(`video-${userId}`);
     
@@ -390,7 +409,11 @@ function addVideoElement(userId, username, stream, isLocal) {
         video.srcObject = stream;
         video.autoplay = true;
         video.playsInline = true;
-        if (isLocal) video.muted = true;
+        video.muted = isLocal;
+        
+        // Optimize video playback
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
         
         const nameTag = document.createElement('div');
         nameTag.className = 'video-nametag';
@@ -405,58 +428,53 @@ function addVideoElement(userId, username, stream, isLocal) {
         video.srcObject = stream;
     }
     
-    updateVideoLayout();
+    // Use RAF for layout update
+    requestAnimationFrame(() => {
+        updateVideoLayout();
+    });
+}
+
+// Debounce function for performance
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 function updateVideoLayout() {
     const container = document.getElementById('videoGridContainer');
+    if (!container) return;
+    
     const videoBoxes = container.querySelectorAll('.video-box');
     const count = videoBoxes.length;
     
     // Remove all layout classes
     container.className = 'video-grid-container';
     
-    // Check if someone is screen sharing
+    // Simple layout based on participant count
+    if (count === 1) {
+        container.classList.add('single-view');
+    } else {
+        container.classList.add('grid-view', `count-${Math.min(count, 10)}`);
+    }
+    
+    // Mark screen sharing video if active
     if (screenSharingUserId) {
-        container.classList.add('screen-share-active');
-        
-        // Clear container
-        container.innerHTML = '';
-        
-        // Create main screen area
-        const mainScreen = document.createElement('div');
-        mainScreen.className = 'video-main-screen';
-        
-        // Create participants strip
-        const participantsStrip = document.createElement('div');
-        participantsStrip.className = 'video-participants-strip';
-        
-        // Add screen share to main area
         const screenShareBox = document.getElementById(`video-${screenSharingUserId}`);
         if (screenShareBox) {
             screenShareBox.classList.add('screen-share');
-            mainScreen.appendChild(screenShareBox);
         }
-        
-        // Add other participants to strip
-        videoBoxes.forEach(box => {
-            if (box.dataset.userId !== screenSharingUserId.toString()) {
-                box.classList.remove('screen-share');
-                participantsStrip.appendChild(box);
-            }
-        });
-        
-        container.appendChild(mainScreen);
-        container.appendChild(participantsStrip);
-    } else if (count === 1) {
-        // Single participant - full screen
-        container.classList.add('single-view');
-    } else {
-        // Grid view
-        container.classList.add('grid-view');
-        container.classList.add(`count-${Math.min(count, 10)}`);
     }
 }
+
+// Debounced version for frequent calls
+const debouncedUpdateLayout = debounce(updateVideoLayout, 50);
 
 function addParticipant(userId, username) {
     participants[userId] = username;
@@ -541,42 +559,85 @@ async function toggleScreenShare() {
     
     if (!isScreenSharing) {
         try {
+            // Full quality screen sharing
             screenStream = await navigator.mediaDevices.getDisplayMedia({
-                video: { cursor: 'always' },
+                video: {
+                    cursor: 'always',
+                    frameRate: { ideal: 30, max: 60 },
+                    width: { ideal: 1920, max: 3840 },
+                    height: { ideal: 1080, max: 2160 }
+                },
                 audio: false
             });
             
             const videoTrack = screenStream.getVideoTracks()[0];
             
-            // Replace video track in all peer connections
+            // Get current settings
+            const settings = videoTrack.getSettings();
+            console.log('Screen share settings:', settings);
+            
+            // Replace video track in all peer connections with optimized parameters
             Object.values(peerConnections).forEach(pc => {
                 const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-                if (sender) sender.replaceTrack(videoTrack);
+                if (sender) {
+                    sender.replaceTrack(videoTrack).then(() => {
+                        // Set high bitrate for screen sharing
+                        const params = sender.getParameters();
+                        if (!params.encodings) {
+                            params.encodings = [{}];
+                        }
+                        
+                        // High quality encoding for screen share
+                        params.encodings[0].maxBitrate = 5000000; // 5 Mbps
+                        params.encodings[0].maxFramerate = 60;
+                        params.encodings[0].priority = 'high';
+                        params.encodings[0].networkPriority = 'high';
+                        
+                        sender.setParameters(params).catch(err => {
+                            console.error('Error setting parameters:', err);
+                        });
+                    }).catch(err => {
+                        console.error('Error replacing track:', err);
+                    });
+                }
             });
             
             // Update local video
             const localVideo = document.querySelector(`#video-${currentUserId} video`);
-            if (localVideo) localVideo.srcObject = screenStream;
+            if (localVideo) {
+                localVideo.srcObject = screenStream;
+            }
             
             isScreenSharing = true;
             screenSharingUserId = currentUserId;
-            document.getElementById('screenBtn').classList.add('active');
+            
+            const screenBtn = document.getElementById('screenBtn');
+            if (screenBtn) {
+                screenBtn.classList.add('active');
+            }
             
             // Notify others about screen share
-            ws.send(JSON.stringify({
-                type: 'screen_share_started',
-                user_id: currentUserId
-            }));
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'screen_share_started',
+                    user_id: currentUserId
+                }));
+            }
             
-            updateVideoLayout();
-            
+            // Handle when user stops sharing via browser UI
             videoTrack.onended = () => {
                 stopScreenShare();
             };
+            
+            console.log('Screen sharing started with full quality');
         } catch (error) {
             console.error('Error sharing screen:', error);
             if (error.name === 'NotAllowedError') {
                 alert('Screen sharing permission denied.');
+            } else if (error.name === 'NotFoundError') {
+                alert('No screen available to share.');
+            } else {
+                alert('Failed to start screen sharing: ' + error.message);
             }
         }
     } else {
@@ -585,35 +646,63 @@ async function toggleScreenShare() {
 }
 
 function stopScreenShare() {
+    console.log('Stopping screen share');
+    
     if (screenStream) {
         screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
     }
     
     const videoTrack = localStream.getVideoTracks()[0];
     
-    // Replace back to camera in all peer connections
+    // Replace back to camera in all peer connections with normal parameters
     Object.values(peerConnections).forEach(pc => {
         const sender = pc.getSenders().find(s => s.track?.kind === 'video');
-        if (sender) sender.replaceTrack(videoTrack);
+        if (sender && videoTrack) {
+            sender.replaceTrack(videoTrack).then(() => {
+                // Reset to normal camera bitrate
+                const params = sender.getParameters();
+                if (params.encodings && params.encodings.length > 0) {
+                    params.encodings[0].maxBitrate = 500000; // 500 Kbps for camera
+                    params.encodings[0].maxFramerate = 15;
+                    params.encodings[0].priority = 'medium';
+                    params.encodings[0].networkPriority = 'medium';
+                    
+                    sender.setParameters(params).catch(err => {
+                        console.error('Error resetting parameters:', err);
+                    });
+                }
+            }).catch(err => {
+                console.error('Error replacing track back to camera:', err);
+            });
+        }
     });
     
     // Update local video
     const localVideo = document.querySelector(`#video-${currentUserId} video`);
-    if (localVideo) localVideo.srcObject = localStream;
+    if (localVideo && localStream) {
+        localVideo.srcObject = localStream;
+    }
     
     isScreenSharing = false;
     if (screenSharingUserId === currentUserId) {
         screenSharingUserId = null;
     }
-    document.getElementById('screenBtn')?.classList.remove('active');
+    
+    const screenBtn = document.getElementById('screenBtn');
+    if (screenBtn) {
+        screenBtn.classList.remove('active');
+    }
     
     // Notify others
-    ws.send(JSON.stringify({
-        type: 'screen_share_stopped',
-        user_id: currentUserId
-    }));
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: 'screen_share_stopped',
+            user_id: currentUserId
+        }));
+    }
     
-    updateVideoLayout();
+    console.log('Screen sharing stopped');
 }
 
 function toggleSidebar() {

@@ -83,12 +83,21 @@ class CameraStreamer:
             try:
                 ret, frame = self.cap.read()
                 if ret and frame is not None:
-                    frame = cv2.resize(frame, (960, 540))
-                    ret, jpeg = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
+                    # Aggressive resize for performance
+                    frame = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_NEAREST)
+                    
+                    # Lower quality encoding
+                    ret, jpeg = cv2.imencode('.jpg', frame, [
+                        cv2.IMWRITE_JPEG_QUALITY, 60,
+                        cv2.IMWRITE_JPEG_OPTIMIZE, 1
+                    ])
+                    
                     if ret:
                         with self.lock:
                             self.frame = jpeg.tobytes()
-                    time.sleep(0.04)
+                    
+                    # Lower frame rate
+                    time.sleep(0.05)  # ~20 FPS
                 else:
                     if self.cap is not None:
                         self.cap.release()
@@ -140,19 +149,28 @@ def list_cameras(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 def camera_feed(request, camera_id):
-    """Stream camera feed"""
+    """Stream camera feed with aggressive optimization"""
     try:
         camera = Camera.objects.get(id=camera_id)
         streamer = camera_manager.get_streamer(camera.id, camera.rtsp_url)
         
         def generate_frames():
+            frame_count = 0
             try:
                 while True:
                     frame = streamer.get_frame()
                     if frame:
                         yield (b'--frame\r\n'
-                               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                        time.sleep(0.04)
+                               b'Content-Type: image/jpeg\r\n'
+                               b'Content-Length: ' + str(len(frame)).encode() + b'\r\n'
+                               b'\r\n' + frame + b'\r\n')
+                        
+                        # Skip frames for better performance
+                        frame_count += 1
+                        if frame_count % 3 == 0:  # Send every 3rd frame
+                            time.sleep(0.05)
+                        else:
+                            time.sleep(0.001)
                     else:
                         time.sleep(0.1)
             except GeneratorExit:
@@ -162,7 +180,9 @@ def camera_feed(request, camera_id):
             generate_frames(),
             content_type='multipart/x-mixed-replace; boundary=frame'
         )
-        response['Cache-Control'] = 'no-cache'
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
         response['X-Accel-Buffering'] = 'no'
         return response
     except Camera.DoesNotExist:
