@@ -439,6 +439,7 @@ This project is licensed under the MIT License.
 <div align="center">
 
 ### 💡 Built with ❤️ for Education
+### Gaurav Chauhan
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=3000&pause=1000&color=6366F1&center=true&vCenter=true&width=600&lines=EduMi+-+Empowering+Education;Through+Technology;Real-Time+Video+Conferencing;For+Schools+%26+Universities" alt="Typing SVG" />
 
