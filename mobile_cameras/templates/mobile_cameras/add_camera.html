@@ -7,17 +7,34 @@
         <h2>📱 Add Mobile Camera</h2>
         <p class="subtitle">Connect your phone camera using IP Webcam or DroidCam</p>
         
+        {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+        {% endif %}
+        
         <form method="POST">
             {% csrf_token %}
             
+            <!-- URL Input Option -->
+            <div class="form-group">
+                <label for="camera_url">Camera URL (Quick Setup)</label>
+                <input type="text" id="camera_url" name="camera_url" placeholder="e.g., http://192.168.1.100:8080/video or http://user:pass@192.168.1.100:4747/mjpegfeed">
+                <small>Paste the full camera URL for automatic configuration, or fill in details below manually</small>
+            </div>
+            
+            <div class="divider">
+                <span>OR</span>
+            </div>
+            
             <div class="form-group">
                 <label for="name">Camera Name *</label>
-                <input type="text" id="name" name="name" required placeholder="e.g., My Phone Camera">
+                <input type="text" id="name" name="name" placeholder="e.g., My Phone Camera">
             </div>
             
             <div class="form-group">
                 <label for="camera_type">Camera Type *</label>
-                <select id="camera_type" name="camera_type" required onchange="updateDefaults()">
+                <select id="camera_type" name="camera_type" onchange="updateDefaults()">
                     <option value="ip_webcam">IP Webcam (Android)</option>
                     <option value="droidcam">DroidCam (iPhone/Android)</option>
                     <option value="other">Other Mobile Camera</option>
@@ -27,21 +44,21 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="ip_address">IP Address *</label>
-                    <input type="text" id="ip_address" name="ip_address" required placeholder="e.g., 192.168.1.100">
+                    <input type="text" id="ip_address" name="ip_address" placeholder="e.g., 192.168.1.100">
                     <small>Find this in your mobile camera app</small>
                 </div>
                 
                 <div class="form-group">
                     <label for="port">Port *</label>
-                    <input type="number" id="port" name="port" value="8080" required>
+                    <input type="number" id="port" name="port" value="8080">
                     <small id="port-hint">Default: 8080 for IP Webcam</small>
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="stream_path">Stream Path *</label>
-                <input type="text" id="stream_path" name="stream_path" value="/video" required>
-                <small id="path-hint">Default: /video for IP Webcam</small>
+                <label for="stream_path">Stream Path</label>
+                <input type="text" id="stream_path" name="stream_path" value="/video">
+                <small id="path-hint">Will be auto-detected if left as default</small>
             </div>
             
             <div class="form-row">
@@ -64,7 +81,8 @@
                         <li>Install IP Webcam (Android) or DroidCam (iPhone) on your phone</li>
                         <li>Connect your phone to the same WiFi network as this server</li>
                         <li>Start the camera app and note the IP address and port</li>
-                        <li>Enter the details above and click "Add Camera"</li>
+                        <li>Copy the full URL from the app OR enter details manually</li>
+                        <li>Stream path will be auto-detected if not specified</li>
                     </ol>
                 </div>
             </div>
@@ -105,6 +123,42 @@
 .subtitle {
     color: #6c757d;
     margin-bottom: 2rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-error {
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    color: #842029;
+}
+
+.divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #dee2e6;
+}
+
+.divider span {
+    background: white;
+    padding: 0 1rem;
+    position: relative;
+    color: #6c757d;
+    font-weight: 600;
 }
 
 .info-box {
@@ -158,18 +212,64 @@ function updateDefaults() {
         portInput.value = '8080';
         pathInput.value = '/video';
         portHint.textContent = 'Default: 8080 for IP Webcam';
-        pathHint.textContent = 'Default: /video for IP Webcam';
+        pathHint.textContent = 'Will be auto-detected if left as default';
     } else if (cameraType === 'droidcam') {
         portInput.value = '4747';
         pathInput.value = '/mjpegfeed';
         portHint.textContent = 'Default: 4747 for DroidCam';
-        pathHint.textContent = 'Default: /mjpegfeed for DroidCam';
+        pathHint.textContent = 'Will be auto-detected if left as default';
     } else {
         portInput.value = '8080';
         pathInput.value = '/video';
         portHint.textContent = 'Common ports: 8080, 4747, 8000';
-        pathHint.textContent = 'Common paths: /video, /mjpegfeed, /stream';
+        pathHint.textContent = 'Will be auto-detected if left as default';
     }
 }
+
+// Auto-fill form when URL is pasted
+document.getElementById('camera_url').addEventListener('input', function(e) {
+    const url = e.target.value.trim();
+    if (!url) return;
+    
+    try {
+        const urlObj = new URL(url);
+        
+        // Extract IP and port
+        if (urlObj.hostname) {
+            document.getElementById('ip_address').value = urlObj.hostname;
+        }
+        if (urlObj.port) {
+            document.getElementById('port').value = urlObj.port;
+        }
+        
+        // Extract path
+        if (urlObj.pathname) {
+            document.getElementById('stream_path').value = urlObj.pathname;
+        }
+        
+        // Extract username and password
+        if (urlObj.username) {
+            document.getElementById('username').value = urlObj.username;
+        }
+        if (urlObj.password) {
+            document.getElementById('password').value = urlObj.password;
+        }
+        
+        // Detect camera type from path
+        const path = urlObj.pathname.toLowerCase();
+        if (path.includes('mjpeg')) {
+            document.getElementById('camera_type').value = 'droidcam';
+        } else if (path.includes('video')) {
+            document.getElementById('camera_type').value = 'ip_webcam';
+        }
+        
+        // Auto-generate name if empty
+        if (!document.getElementById('name').value) {
+            document.getElementById('name').value = `Camera ${urlObj.hostname}`;
+        }
+    } catch (err) {
+        // Invalid URL, ignore
+    }
+});
 </script>
 {% endblock %}

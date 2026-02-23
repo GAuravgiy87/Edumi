@@ -52,19 +52,124 @@ def mobile_camera_dashboard(request):
 
 
 @login_required
+def test_mobile_camera_paths(ip, port, username, password):
+    """Test common mobile camera paths to find the working one"""
+    import requests
+    from requests.auth import HTTPBasicAuth
+    
+    common_paths = [
+        '/video',           # IP Webcam default
+        '/mjpegfeed',       # DroidCam default
+        '/videofeed',       # Alternative
+        '/cam_1.mjpg',      # Some apps
+        '/stream',          # Generic
+        '/video.mjpg',      # MJPEG format
+        '/video.cgi',       # CGI format
+        '/',                # Root path
+    ]
+    
+    for path in common_paths:
+        if username and password:
+            url = f"http://{username}:{password}@{ip}:{port}{path}"
+            auth = HTTPBasicAuth(username, password)
+        else:
+            url = f"http://{ip}:{port}{path}"
+            auth = None
+        
+        try:
+            response = requests.get(url, timeout=3, stream=True, auth=auth)
+            if response.status_code == 200:
+                content_type = response.headers.get('Content-Type', '')
+                if 'image' in content_type or 'video' in content_type or 'multipart' in content_type:
+                    return path, url
+        except Exception:
+            continue
+    
+    return None, None
+
+
+def parse_camera_url(url):
+    """Parse a camera URL to extract components"""
+    from urllib.parse import urlparse
+    
+    parsed = urlparse(url)
+    
+    # Extract username and password
+    username = parsed.username or ''
+    password = parsed.password or ''
+    
+    # Extract IP and port
+    ip_address = parsed.hostname
+    port = parsed.port
+    
+    # Extract path
+    stream_path = parsed.path or '/'
+    
+    # Determine camera type based on URL scheme and path
+    camera_type = 'other'
+    if parsed.scheme == 'rtsp':
+        camera_type = 'other'  # RTSP cameras should use the cameras app
+    elif '/video' in stream_path:
+        camera_type = 'ip_webcam'
+    elif '/mjpegfeed' in stream_path:
+        camera_type = 'droidcam'
+    
+    # Set default port if not specified
+    if not port:
+        if parsed.scheme == 'rtsp':
+            port = 554
+        else:
+            port = 8080
+    
+    return {
+        'ip_address': ip_address,
+        'port': port,
+        'username': username,
+        'password': password,
+        'stream_path': stream_path,
+        'camera_type': camera_type
+    }
+
+
 def add_mobile_camera(request):
     """Add a new mobile camera"""
     if not is_admin(request.user):
         return redirect('login')
     
     if request.method == 'POST':
-        name = request.POST.get('name')
-        camera_type = request.POST.get('camera_type')
-        ip_address = request.POST.get('ip_address')
-        port = int(request.POST.get('port', 8080))
-        username = request.POST.get('username', '')
-        password = request.POST.get('password', '')
-        stream_path = request.POST.get('stream_path', '/video')
+        # Check if URL is provided
+        camera_url = request.POST.get('camera_url', '').strip()
+        
+        if camera_url:
+            # Parse URL to extract components
+            try:
+                parsed = parse_camera_url(camera_url)
+                name = request.POST.get('name') or f"Camera {parsed['ip_address']}"
+                camera_type = parsed['camera_type']
+                ip_address = parsed['ip_address']
+                port = parsed['port']
+                username = parsed['username']
+                password = parsed['password']
+                stream_path = parsed['stream_path']
+            except Exception as e:
+                return render(request, 'mobile_cameras/add_camera.html', {
+                    'error': f'Invalid URL format: {str(e)}'
+                })
+        else:
+            # Use manual input
+            name = request.POST.get('name')
+            camera_type = request.POST.get('camera_type')
+            ip_address = request.POST.get('ip_address')
+            port = int(request.POST.get('port', 8080))
+            username = request.POST.get('username', '')
+            password = request.POST.get('password', '')
+            stream_path = request.POST.get('stream_path', '/video')
+        
+        # Auto-detect path if not from URL
+        if not camera_url:
+            detected_path, detected_url = test_mobile_camera_paths(ip_address, port, username, password)
+            if detected_path:
+                stream_path = detected_path
         
         # Create mobile camera
         MobileCamera.objects.create(
