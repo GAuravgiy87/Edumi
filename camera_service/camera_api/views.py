@@ -324,6 +324,11 @@ def mobile_camera_feed(request, mobile_camera_id):
     
     try:
         mobile_camera = MobileCamera.objects.get(id=mobile_camera_id)
+        
+        # Check if camera is active (not paused)
+        if not mobile_camera.is_active:
+            return JsonResponse({'error': 'Camera is paused'}, status=503)
+        
         stream_url = mobile_camera.get_stream_url()
         streamer = mobile_camera_manager.get_streamer(mobile_camera.id, stream_url)
         
@@ -368,6 +373,14 @@ def test_mobile_camera(request, mobile_camera_id):
     
     try:
         mobile_camera = MobileCamera.objects.get(id=mobile_camera_id)
+        
+        # Check if camera is active (not paused)
+        if not mobile_camera.is_active:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Camera is paused'
+            })
+        
         stream_url = mobile_camera.get_stream_url()
         
         response = requests.get(stream_url, timeout=5)

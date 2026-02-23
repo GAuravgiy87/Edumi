@@ -15,7 +15,7 @@
     
     <div class="camera-feed-container">
         <div class="feed-wrapper">
-            <img id="camera-stream" src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }} feed" class="camera-stream" onerror="handleImageError()">
+            <img id="camera-stream" src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }} feed" class="camera-stream" onerror="handleImageError()" style="display: none;">
             <div id="loading-overlay" class="loading-overlay">
                 <div class="spinner"></div>
                 <p>Connecting to camera...</p>
@@ -140,6 +140,9 @@ cameraStream.addEventListener('load', function() {
     const overlay = document.getElementById('loading-overlay');
     const status = document.getElementById('camera-status');
     
+    // Show the image
+    cameraStream.style.display = 'block';
+    
     // Hide overlay with fade effect
     overlay.style.opacity = '0';
     setTimeout(() => {
@@ -148,6 +151,17 @@ cameraStream.addEventListener('load', function() {
     
     status.innerHTML = '● Active';
     status.className = 'value status-active';
+});
+
+// Start loading the image after page loads
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('Starting camera feed load...');
+    console.log('Feed URL:', cameraStream.src);
+    
+    // Trigger image load
+    setTimeout(() => {
+        cameraStream.style.display = 'block';
+    }, 500);
 });
 
 // Check server status periodically

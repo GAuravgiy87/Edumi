@@ -51,15 +51,14 @@ def mobile_camera_dashboard(request):
     return render(request, 'mobile_cameras/dashboard.html', context)
 
 
-@login_required
 def test_mobile_camera_paths(ip, port, username, password):
     """Test common mobile camera paths to find the working one"""
     import requests
     from requests.auth import HTTPBasicAuth
     
     common_paths = [
-        '/video',           # IP Webcam default
-        '/mjpegfeed',       # DroidCam default
+        '/video',           # DroidCam and IP Webcam both support this
+        '/mjpegfeed',       # DroidCam alternative (but /video works better)
         '/videofeed',       # Alternative
         '/cam_1.mjpg',      # Some apps
         '/stream',          # Generic
@@ -141,7 +140,7 @@ def add_mobile_camera(request):
         camera_url = request.POST.get('camera_url', '').strip()
         
         if camera_url:
-            # Parse URL to extract components
+            # Parse URL to extract components (ignore the path, we'll auto-detect)
             try:
                 parsed = parse_camera_url(camera_url)
                 name = request.POST.get('name') or f"Camera {parsed['ip_address']}"
@@ -150,7 +149,6 @@ def add_mobile_camera(request):
                 port = parsed['port']
                 username = parsed['username']
                 password = parsed['password']
-                stream_path = parsed['stream_path']
             except Exception as e:
                 return render(request, 'mobile_cameras/add_camera.html', {
                     'error': f'Invalid URL format: {str(e)}'
@@ -163,13 +161,18 @@ def add_mobile_camera(request):
             port = int(request.POST.get('port', 8080))
             username = request.POST.get('username', '')
             password = request.POST.get('password', '')
-            stream_path = request.POST.get('stream_path', '/video')
         
-        # Auto-detect path if not from URL
-        if not camera_url:
-            detected_path, detected_url = test_mobile_camera_paths(ip_address, port, username, password)
-            if detected_path:
-                stream_path = detected_path
+        # ALWAYS auto-detect the path
+        detected_path, detected_url = test_mobile_camera_paths(ip_address, port, username, password)
+        
+        if detected_path:
+            stream_path = detected_path
+        else:
+            # Use default based on camera type if auto-detection fails
+            if camera_type == 'droidcam':
+                stream_path = '/mjpegfeed'
+            else:
+                stream_path = '/video'
         
         # Create mobile camera
         MobileCamera.objects.create(
@@ -195,7 +198,6 @@ def delete_mobile_camera(request, mobile_camera_id):
     
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
     mobile_camera.delete()
-    logger.info(f"Deleted mobile camera {mobile_camera_id}")
     return redirect('mobile_cameras:dashboard')
 
 
@@ -203,66 +205,49 @@ def mobile_camera_feed(request, mobile_camera_id):
     """Proxy mobile camera feed from camera service on port 8001"""
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
     
-    # Check authentication - but don't redirect, just return 403
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=403)
-    
     # Check permission
     if not can_view_mobile_camera(request.user, mobile_camera):
-        logger.warning(f"User {request.user.username} denied access to mobile camera {mobile_camera_id}")
         return JsonResponse({'error': 'You do not have permission to view this camera'}, status=403)
     
     import requests
     
     def generate_frames():
-        """Proxy frames from camera service on port 8001"""
-        camera_service_url = f"http://localhost:8001/api/mobile-cameras/{mobile_camera_id}/feed/"
-        logger.info(f"Proxying mobile camera feed from: {camera_service_url}")
-        
+        """Proxy frames from camera service"""
         try:
-            response = requests.get(camera_service_url, stream=True, timeout=10)
+            camera_service_url = f'http://localhost:8001/api/mobile-cameras/{mobile_camera_id}/feed/'
+            response = requests.get(camera_service_url, stream=True, timeout=30)
             
-            if response.status_code == 200:
-                logger.info(f"Successfully connected to camera service for mobile camera {mobile_camera_id}")
-                
-                for chunk in response.iter_content(chunk_size=4096):
-                    if chunk:
-                        yield chunk
-            else:
-                logger.error(f"Camera service returned HTTP {response.status_code} for mobile camera {mobile_camera_id}")
-                error_msg = f"Camera service error: HTTP {response.status_code}"
-                yield error_msg.encode()
-                        
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"Cannot connect to camera service: {e}")
-            error_msg = "Camera service not available. Please ensure it's running on port 8001."
-            yield error_msg.encode()
-        except requests.exceptions.Timeout as e:
-            logger.error(f"Timeout connecting to camera service: {e}")
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    yield chunk
+                    
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Camera service not running on port 8001")
+            error_msg = (
+                b'--frame\r\n'
+                b'Content-Type: text/plain\r\n\r\n'
+                b'ERROR: Camera service not running on port 8001.\r\n'
+            )
+            yield error_msg
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error proxying mobile camera {mobile_camera_id}: {e}")
         except GeneratorExit:
             logger.info(f"Client disconnected from mobile camera {mobile_camera_id}")
-        except Exception as e:
-            logger.error(f"Unexpected error proxying mobile camera {mobile_camera_id}: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-    
+
     response = StreamingHttpResponse(
         generate_frames(),
         content_type='multipart/x-mixed-replace; boundary=frame'
     )
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
+    response['Cache-Control'] = 'no-cache'
     response['X-Accel-Buffering'] = 'no'
     return response
 
 
 @login_required
 def view_mobile_camera(request, mobile_camera_id):
-    """View a specific mobile camera"""
+    """View a single mobile camera feed"""
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
     
-    # Check permission
     if not can_view_mobile_camera(request.user, mobile_camera):
         return redirect('login')
     
@@ -271,7 +256,7 @@ def view_mobile_camera(request, mobile_camera_id):
 
 @login_required
 def live_monitor(request):
-    """View all mobile cameras in a grid"""
+    """View all mobile camera feeds in a grid"""
     if not request.user.is_authenticated:
         return redirect('login')
     
@@ -280,78 +265,52 @@ def live_monitor(request):
         mobile_cameras = MobileCamera.objects.filter(is_active=True)
     elif hasattr(request.user, 'userprofile'):
         if request.user.userprofile.user_type == 'teacher':
-            # Teachers see mobile cameras they have permission for
             mobile_camera_ids = MobileCameraPermission.objects.filter(teacher=request.user).values_list('mobile_camera_id', flat=True)
             mobile_cameras = MobileCamera.objects.filter(id__in=mobile_camera_ids, is_active=True)
         elif request.user.userprofile.user_type == 'student':
-            # Students see all active mobile cameras
             mobile_cameras = MobileCamera.objects.filter(is_active=True)
         else:
             mobile_cameras = MobileCamera.objects.none()
     else:
         mobile_cameras = MobileCamera.objects.none()
     
-    return render(request, 'mobile_cameras/live_monitor.html', {'mobile_cameras': mobile_cameras})
+    context = {
+        'mobile_cameras': mobile_cameras,
+    }
+    return render(request, 'mobile_cameras/live_monitor.html', context)
 
 
 @login_required
 def test_mobile_camera(request, mobile_camera_id):
-    """Test mobile camera connection via camera service"""
-    if not is_admin(request.user):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
+    """Test mobile camera connection"""
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
     
+    import requests
+    
     try:
-        import requests
-        
-        # Test via camera service on port 8001
-        camera_service_url = f"http://localhost:8001/api/mobile-cameras/{mobile_camera_id}/test/"
-        response = requests.get(camera_service_url, timeout=10)
+        url = mobile_camera.get_stream_url()
+        response = requests.get(url, timeout=5)
         
         if response.status_code == 200:
-            result = response.json()
-            if result.get('status') == 'success':
-                mobile_camera.is_active = True
-                mobile_camera.save()
-                return JsonResponse({
-                    'status': 'success',
-                    'message': 'Mobile camera is accessible via camera service',
-                    'url': result.get('url')
-                })
-            else:
-                mobile_camera.is_active = False
-                mobile_camera.save()
-                return JsonResponse({
-                    'status': 'error',
-                    'message': result.get('message', 'Camera test failed')
-                })
-        else:
-            mobile_camera.is_active = False
-            mobile_camera.save()
             return JsonResponse({
-                'status': 'error',
-                'message': f'Camera service returned HTTP {response.status_code}'
+                'status': 'success',
+                'message': f'Mobile camera is accessible',
+                'url': url
             })
-            
-    except requests.exceptions.ConnectionError:
         return JsonResponse({
             'status': 'error',
-            'message': 'Cannot connect to camera service on port 8001. Please ensure it is running.'
+            'message': f'HTTP {response.status_code}'
         })
     except Exception as e:
-        logger.error(f"Error testing mobile camera {mobile_camera_id}: {e}")
-        mobile_camera.is_active = False
-        mobile_camera.save()
         return JsonResponse({
             'status': 'error',
-            'message': str(e)
+            'message': f'Error: {str(e)}'
         })
 
 
 @login_required
 def grant_permission(request, mobile_camera_id):
-    """Grant mobile camera access to a teacher"""
+    """Grant a teacher permission to view a mobile camera"""
     if not is_admin(request.user):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
@@ -360,112 +319,44 @@ def grant_permission(request, mobile_camera_id):
         teacher_id = request.POST.get('teacher_id')
         teacher = get_object_or_404(User, id=teacher_id)
         
-        # Verify teacher has teacher profile
-        if not hasattr(teacher, 'userprofile') or teacher.userprofile.user_type != 'teacher':
-            return JsonResponse({'error': 'User is not a teacher'}, status=400)
-        
-        # Create or get permission
-        permission, created = MobileCameraPermission.objects.get_or_create(
+        MobileCameraPermission.objects.get_or_create(
             mobile_camera=mobile_camera,
             teacher=teacher,
             defaults={'granted_by': request.user}
         )
         
-        if created:
-            return JsonResponse({'success': True, 'message': f'Access granted to {teacher.username}'})
-        else:
-            return JsonResponse({'success': False, 'message': 'Permission already exists'})
+        return JsonResponse({'success': True})
     
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 @login_required
 def revoke_permission(request, mobile_camera_id, teacher_id):
-    """Revoke mobile camera access from a teacher"""
+    """Revoke a teacher's permission to view a mobile camera"""
     if not is_admin(request.user):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        return redirect('login')
     
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
     teacher = get_object_or_404(User, id=teacher_id)
     
-    # Delete permission
-    deleted_count = MobileCameraPermission.objects.filter(mobile_camera=mobile_camera, teacher=teacher).delete()[0]
+    MobileCameraPermission.objects.filter(mobile_camera=mobile_camera, teacher=teacher).delete()
     
-    if deleted_count > 0:
-        return JsonResponse({'success': True, 'message': f'Access revoked from {teacher.username}'})
-    else:
-        return JsonResponse({'success': False, 'message': 'Permission not found'})
+    return redirect('mobile_cameras:manage_permissions', mobile_camera_id=mobile_camera_id)
 
 
 @login_required
 def manage_permissions(request, mobile_camera_id):
-    """View to manage permissions for a specific mobile camera"""
+    """Manage mobile camera permissions"""
     if not is_admin(request.user):
         return redirect('login')
     
     mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
-    all_teachers = User.objects.filter(userprofile__user_type='teacher')
+    teachers = User.objects.filter(userprofile__user_type='teacher')
     authorized_teachers = mobile_camera.get_authorized_teachers()
-    unauthorized_teachers = all_teachers.exclude(id__in=authorized_teachers.values_list('id', flat=True))
     
     context = {
         'mobile_camera': mobile_camera,
+        'teachers': teachers,
         'authorized_teachers': authorized_teachers,
-        'unauthorized_teachers': unauthorized_teachers,
     }
     return render(request, 'mobile_cameras/manage_permissions.html', context)
-
-
-
-@login_required
-def test_feed(request, mobile_camera_id):
-    """Simple test page to debug mobile camera feed via camera service"""
-    if not is_admin(request.user):
-        return redirect('login')
-    
-    mobile_camera = get_object_or_404(MobileCamera, id=mobile_camera_id)
-    
-    # Test via camera service
-    import requests
-    stream_url = mobile_camera.get_stream_url()
-    camera_service_url = f"http://localhost:8001/api/mobile-cameras/{mobile_camera_id}/test/"
-    
-    try:
-        response = requests.get(camera_service_url, timeout=5)
-        
-        if response.status_code == 200:
-            result = response.json()
-            context = {
-                'mobile_camera': mobile_camera,
-                'stream_url': stream_url,
-                'camera_service_url': camera_service_url,
-                'status': result.get('status'),
-                'message': result.get('message'),
-                'success': result.get('status') == 'success',
-            }
-        else:
-            context = {
-                'mobile_camera': mobile_camera,
-                'stream_url': stream_url,
-                'camera_service_url': camera_service_url,
-                'error': f'Camera service returned HTTP {response.status_code}',
-                'success': False,
-            }
-    except requests.exceptions.ConnectionError:
-        context = {
-            'mobile_camera': mobile_camera,
-            'stream_url': stream_url,
-            'camera_service_url': camera_service_url,
-            'error': 'Cannot connect to camera service on port 8001',
-            'success': False,
-        }
-    except Exception as e:
-        context = {
-            'mobile_camera': mobile_camera,
-            'stream_url': stream_url,
-            'camera_service_url': camera_service_url,
-            'error': str(e),
-            'success': False,
-        }
-    
-    return render(request, 'mobile_cameras/test_feed.html', context)
