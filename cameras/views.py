@@ -378,23 +378,23 @@ def camera_feed(request, camera_id):
         """Proxy frames from camera service"""
         try:
             camera_service_url = f'http://localhost:8001/api/cameras/{camera_id}/feed/'
-            response = requests.get(camera_service_url, stream=True, timeout=30)
+            logger.info(f"Proxying camera {camera_id} from {camera_service_url}")
             
-            for chunk in response.iter_content(chunk_size=1024):
+            response = requests.get(camera_service_url, stream=True, timeout=None)
+            response.raise_for_status()
+            
+            # Stream the response directly
+            for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     yield chunk
                     
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             # Camera service is not running
-            logger.error(f"Camera service not running on port 8001")
+            logger.error(f"Camera service not running on port 8001: {e}")
             error_msg = (
                 b'--frame\r\n'
                 b'Content-Type: text/plain\r\n\r\n'
-                b'ERROR: Camera service not running on port 8001.\n'
-                b'Please start the camera service:\n'
-                b'  cd camera_service\n'
-                b'  python manage.py runserver 8001\n'
-                b'Or use: ./start_services.bat (Windows) or ./start_services.sh (Linux/Mac)\r\n'
+                b'ERROR: Camera service not running on port 8001.\r\n'
             )
             yield error_msg
         except requests.exceptions.RequestException as e:
@@ -407,13 +407,19 @@ def camera_feed(request, camera_id):
             yield error_msg
         except GeneratorExit:
             logger.info(f"Client disconnected from camera {camera_id}")
+        except Exception as e:
+            logger.error(f"Unexpected error proxying camera {camera_id}: {e}")
+
 
     response = StreamingHttpResponse(
         generate_frames(),
         content_type='multipart/x-mixed-replace; boundary=frame'
     )
-    response['Cache-Control'] = 'no-cache'
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
     response['X-Accel-Buffering'] = 'no'
+    response['Connection'] = 'keep-alive'
     return response
 
 @login_required
@@ -505,6 +511,11 @@ def test_camera(request, camera_id):
             'status': 'error',
             'message': f'Error: {str(e)}'
         })
+
+@login_required
+def test_feed_page(request):
+    """Simple test page for camera feed"""
+    return render(request, 'test_feed.html')
 
 @login_required
 def grant_permission(request, camera_id):

@@ -309,16 +309,25 @@ edumi/
 │   │   └── meeting_room.html # Main meeting interface
 │   └── ...
 ├── ⚙️ school_project/        # Main Django settings
-├── 📚 Documentation/
-│   ├── README.md             # This file
-│   ├── UPDATE.md             # Complete changelog
-│   └── RUN.md                # Running instructions
-├── 🚀 Scripts/
+├── 📚 docs/                  # Documentation
+│   ├── NETWORK_ACCESS.md     # Network setup guide
+│   ├── APP_STATUS_REPORT.md  # Status reports
+│   └── UPDATE.md             # Complete changelog
+├── 🧪 tests/                 # Test scripts
+│   ├── test_*.py             # Various test files
+│   └── check_*.py            # Status check scripts
+├── 🛠️ utils/                 # Utility scripts
+│   ├── setup_*.py            # Setup scripts
+│   └── fix_*.py              # Fix scripts
+├── 🚀 Startup Scripts/
 │   ├── start_services.bat    # Windows startup
 │   ├── start_services.sh     # Linux/Mac startup
-│   └── setup_*.py            # Setup scripts
+│   ├── start_network.bat     # Network access startup
+│   └── allow_firewall.bat    # Firewall configuration
 ├── .gitignore
 ├── requirements.txt
+├── README.md                 # Main documentation
+├── RUN.md                    # Running instructions
 └── manage.py
 ```
 
@@ -344,11 +353,13 @@ edumi/
 
 <div align="center">
 
-| Document | Description |
-|----------|-------------|
-| [📘 README.md](README.md) | Main documentation (you are here) |
-| [📝 UPDATE.md](UPDATE.md) | Complete changelog & fixes |
-| [🚀 RUN.md](RUN.md) | Detailed running instructions |
+| Document | Location | Description |
+|----------|----------|-------------|
+| 📘 **README.md** | Root | Main documentation (you are here) |
+| 🚀 **RUN.md** | Root | Detailed running instructions |
+| 🌐 **NETWORK_ACCESS.md** | docs/ | Network setup & WiFi access guide |
+| 📊 **APP_STATUS_REPORT.md** | docs/ | Application status & features |
+| 📝 **UPDATE.md** | docs/ | Complete changelog & fixes |
 
 </div>
 

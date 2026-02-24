@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Camera Feed Test</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        img {
+            width: 100%;
+            border: 2px solid #333;
+            background: #000;
+        }
+        .info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Camera Feed Test</h1>
+        <div class="info">
+            <p><strong>Feed URL:</strong> http://localhost:8000/cameras/camera-feed/10/</p>
+            <p><strong>Status:</strong> <span id="status">Loading...</span></p>
+        </div>
+        
+        <h2>Direct Feed:</h2>
+        <img id="feed" src="http://localhost:8000/cameras/camera-feed/10/" alt="Camera Feed">
+        
+        <div class="info">
+            <p>If you see a video feed above, the camera is working!</p>
+            <p>If you see a black box, check:</p>
+            <ul>
+                <li>Both services running (port 8000 and 8001)</li>
+                <li>Camera is online and accessible</li>
+                <li>Browser console for errors (F12)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        const img = document.getElementById('feed');
+        const status = document.getElementById('status');
+        
+        img.onload = function() {
+            status.textContent = '✓ Feed loaded successfully!';
+            status.style.color = 'green';
+        };
+        
+        img.onerror = function() {
+            status.textContent = '✗ Failed to load feed';
+            status.style.color = 'red';
+        };
+        
+        // Log to console
+        console.log('Feed URL:', img.src);
+        console.log('Waiting for feed to load...');
+    </script>
+</body>
+</html>

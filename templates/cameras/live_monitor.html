@@ -21,8 +21,8 @@
             <div class="card-body">
                 <div class="feed-container">
                     <img src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }}" class="live-feed"
-                        data-camera-id="{{ camera.id }}">
-                    <div class="overlay" id="overlay-{{ camera.id }}">
+                        data-camera-id="{{ camera.id }}" style="display: block !important; z-index: 100 !important;">
+                    <div class="overlay" id="overlay-{{ camera.id }}" style="z-index: 50;">
                         <div class="spinner"></div>
                     </div>
                 </div>
@@ -119,6 +119,7 @@
         padding-top: 56.25%;
         /* 16:9 Aspect Ratio */
         position: relative;
+        background: #1a1a1a;
     }
 
     .live-feed {
@@ -128,6 +129,8 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
+        z-index: 1;
+        background: #000;
     }
 
     .overlay {
@@ -140,7 +143,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 5;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .overlay.hidden {
+        display: none;
     }
 
     .spinner {
@@ -247,9 +255,12 @@
                 badge.innerText = 'LIVE';
                 badge.className = 'badge online';
                 overlay.style.display = 'none';
+                overlay.classList.add('hidden');
             } else {
                 badge.innerText = 'OFFLINE';
                 badge.className = 'badge offline';
+                overlay.style.display = 'flex';
+                overlay.classList.remove('hidden');
                 overlay.innerHTML = '<div style="text-align:center">⚠ Camera Offline</div>';
             }
         }
@@ -257,13 +268,14 @@
 
     // Attach event listeners to all live feeds
     document.querySelectorAll('.live-feed').forEach(img => {
-        img.onload = function () {
-            const id = this.getAttribute('data-camera-id');
+        const id = img.getAttribute('data-camera-id');
+        
+        // For MJPEG streams, hide overlay after short delay since onload doesn't fire
+        setTimeout(() => {
             updateStatus(id, 'online');
-        };
+        }, 2000);
+        
         img.onerror = function () {
-            const id = this.getAttribute('data-camera-id');
-            // Check if it's server offline or just camera offline
             checkServerStatus();
             updateStatus(id, 'offline');
         };

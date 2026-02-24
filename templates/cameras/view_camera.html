@@ -15,11 +15,7 @@
     
     <div class="camera-feed-container">
         <div class="feed-wrapper">
-            <img id="camera-stream" src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }} feed" class="camera-stream" onerror="handleImageError()" style="display: none;">
-            <div id="loading-overlay" class="loading-overlay">
-                <div class="spinner"></div>
-                <p>Connecting to camera...</p>
-            </div>
+            <img id="camera-stream" src="{% url 'camera_feed' camera.id %}" alt="{{ camera.name }} feed" class="camera-stream" style="width: 100%; height: auto; display: block;">
         </div>
         
         <div class="camera-details">
@@ -131,37 +127,26 @@ function handleImageError() {
     }
 }
 
-// Hide loading overlay when image loads
+// Hide loading overlay when stream starts (for MJPEG streams)
 const cameraStream = document.getElementById('camera-stream');
+const overlay = document.getElementById('loading-overlay');
+const status = document.getElementById('camera-status');
 
-cameraStream.addEventListener('load', function() {
-    console.log('Image loaded successfully');
-    imageLoaded = true;
-    const overlay = document.getElementById('loading-overlay');
-    const status = document.getElementById('camera-status');
-    
-    // Show the image
-    cameraStream.style.display = 'block';
-    
-    // Hide overlay with fade effect
+// For MJPEG streams, hide overlay after a short delay
+setTimeout(() => {
+    console.log('Hiding loading overlay for MJPEG stream');
     overlay.style.opacity = '0';
     setTimeout(() => {
         overlay.style.display = 'none';
     }, 300);
-    
     status.innerHTML = '● Active';
     status.className = 'value status-active';
-});
+}, 2000);
 
 // Start loading the image after page loads
 window.addEventListener('DOMContentLoaded', function() {
     console.log('Starting camera feed load...');
     console.log('Feed URL:', cameraStream.src);
-    
-    // Trigger image load
-    setTimeout(() => {
-        cameraStream.style.display = 'block';
-    }, 500);
 });
 
 // Check server status periodically
@@ -308,6 +293,8 @@ setTimeout(() => {
     width: 100%;
     height: auto;
     display: block;
+    position: relative;
+    z-index: 1;
 }
 
 .loading-overlay {
@@ -323,7 +310,7 @@ setTimeout(() => {
     justify-content: center;
     color: white;
     transition: opacity 0.3s ease;
-    z-index: 10;
+    z-index: 5;
 }
 
 .spinner {

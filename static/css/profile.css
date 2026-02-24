@@ -56,7 +56,7 @@
     height: 120px;
     border-radius: 50%;
     border: 4px solid var(--white);
-    overflow: hidden;
+    overflow: visible;
     margin-top: -60px;
     box-shadow: var(--shadow-lg);
     flex-shrink: 0;
@@ -492,5 +492,438 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+}
+
+/* Inline Editable Elements */
+.editable-title {
+    font-size: 2rem;
+    font-weight: 700;
+    border: 2px dashed transparent;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    transition: all 0.3s;
+    background: transparent;
+}
+
+.editable-title:focus {
+    border-color: #1877f2;
+    background: rgba(24, 119, 242, 0.05);
+    outline: none;
+}
+
+.editable-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed #dddfe2;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s;
+    background: #f8f9fa;
+}
+
+.editable-textarea:focus {
+    border-color: #1877f2;
+    border-style: solid;
+    background: #fff;
+    outline: none;
+}
+
+.editable-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px dashed #dddfe2;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    background: #f8f9fa;
+}
+
+.editable-input:focus {
+    border-color: #1877f2;
+    border-style: solid;
+    background: #fff;
+    outline: none;
+}
+
+/* Avatar Upload */
+.avatar-upload {
+    position: relative;
+    cursor: pointer;
+    display: block;
+}
+
+.avatar-upload img {
+    transition: opacity 0.3s;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    color: white;
+}
+
+.avatar-overlay svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+}
+
+.avatar-overlay span {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.avatar-upload:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-upload:hover img {
+    opacity: 0.3;
+}
+
+/* Save Button */
+.btn-save-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1877f2;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-save-profile:hover {
+    background: #166fe5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.btn-save-profile svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Completion Circle */
+.completion-circle {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 16px;
+}
+
+.completion-circle svg {
+    width: 100%;
+    height: 100%;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke: #1877f2;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    animation: progress 1s ease-out forwards;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+.percentage {
+    fill: #1877f2;
+    font-family: inherit;
+    font-size: 0.5em;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.completion-hint {
+    text-align: center;
+    color: #65676b;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.completion-success {
+    text-align: center;
+    color: #31a24c;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Avatar Container with Edit Button */
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    border-radius: 50%;
+    overflow: visible !important;
+}
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1877f2;
+    border: 4px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.avatar-edit-btn:hover {
+    background: #166fe5;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.5);
+}
+
+.avatar-edit-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    stroke-width: 2.5;
+}
+
+/* Avatar Modal */
+.avatar-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.avatar-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.avatar-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #dddfe2;
+}
+
+.avatar-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1c1e21;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #65676b;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #f0f2f5;
+    color: #1c1e21;
+}
+
+.avatar-modal-body {
+    padding: 24px;
+}
+
+.avatar-modal-body h3 {
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    color: #1c1e21;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.avatar-option {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+    background: #f0f2f5;
+}
+
+.avatar-option:hover {
+    border-color: #1877f2;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.avatar-option img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-divider {
+    text-align: center;
+    margin: 32px 0;
+    position: relative;
+}
+
+.avatar-divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: #dddfe2;
+}
+
+.avatar-divider span {
+    background: white;
+    padding: 0 16px;
+    position: relative;
+    color: #65676b;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.avatar-upload-section {
+    text-align: center;
+}
+
+.btn-upload-photo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #1877f2;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 12px;
+}
+
+.btn-upload-photo:hover {
+    background: #166fe5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.btn-upload-photo svg {
+    width: 20px;
+    height: 20px;
+}
+
+.upload-hint {
+    color: #65676b;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .avatar-modal-content {
+        width: 95%;
     }
 }

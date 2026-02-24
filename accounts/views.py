@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib import messages
 from .forms import RegisterForm
 from .models import UserProfile
 from meetings.models import Meeting
@@ -94,11 +95,29 @@ def student_dashboard(request):
     if not hasattr(request.user, 'userprofile') or request.user.userprofile.user_type != 'student':
         return redirect('login')
     
+    profile = request.user.userprofile
+    
     # Get real meeting statistics
     available_meetings = Meeting.objects.filter(status__in=['scheduled', 'live']).count()
+    attended_meetings = request.user.meetingparticipant_set.count()
+    
+    # Calculate profile completion
+    completion = 0
+    if profile.display_name: completion += 10
+    if request.user.first_name: completion += 10
+    if request.user.last_name: completion += 10
+    if request.user.email: completion += 10
+    if profile.bio: completion += 15
+    if profile.phone: completion += 10
+    if profile.date_of_birth: completion += 10
+    if profile.address: completion += 10
+    if profile.profile_picture or profile.avatar_url: completion += 15
     
     context = {
         'available_meetings': available_meetings,
+        'attended_meetings': attended_meetings,
+        'profile_completion': completion,
+        'profile': profile,
     }
     
     return render(request, 'accounts/student_dashboard.html', context)
@@ -118,18 +137,82 @@ def profile_view(request, username=None):
     # Check if viewing own profile
     is_own_profile = request.user == profile_user
     
+    # Handle form submission for own profile
+    if is_own_profile and request.method == 'POST' and profile:
+        # Update User model (allow empty values)
+        request.user.first_name = request.POST.get('first_name', '').strip()
+        request.user.last_name = request.POST.get('last_name', '').strip()
+        request.user.email = request.POST.get('email', '').strip()
+        request.user.save()
+        
+        # Update UserProfile (allow empty values)
+        profile.display_name = request.POST.get('display_name', '').strip()
+        profile.bio = request.POST.get('bio', '').strip()
+        profile.phone = request.POST.get('phone', '').strip()
+        profile.address = request.POST.get('address', '').strip()
+        
+        # Handle profile picture - check if avatar was selected or file uploaded
+        avatar_choice = request.POST.get('avatar_choice', '').strip()
+        if request.FILES.get('profile_picture'):
+            # File uploaded - save it and clear avatar URL
+            profile.profile_picture = request.FILES['profile_picture']
+            profile.avatar_url = None
+        elif avatar_choice:
+            # Avatar selected - save URL and clear uploaded picture
+            profile.avatar_url = avatar_choice
+            profile.profile_picture = None
+        
+        # Date of birth (optional)
+        dob = request.POST.get('date_of_birth', '').strip()
+        if dob:
+            profile.date_of_birth = dob
+        else:
+            profile.date_of_birth = None
+        
+        # Social links (optional)
+        profile.linkedin = request.POST.get('linkedin', '').strip()
+        profile.twitter = request.POST.get('twitter', '').strip()
+        profile.website = request.POST.get('website', '').strip()
+        
+        # Type-specific fields (optional)
+        if profile.user_type == 'student':
+            profile.student_id = request.POST.get('student_id', '').strip()
+            profile.grade = request.POST.get('grade', '').strip()
+            enrollment = request.POST.get('enrollment_date', '').strip()
+            if enrollment:
+                profile.enrollment_date = enrollment
+            else:
+                profile.enrollment_date = None
+        elif profile.user_type == 'teacher':
+            profile.employee_id = request.POST.get('employee_id', '').strip()
+            profile.department = request.POST.get('department', '').strip()
+            profile.specialization = request.POST.get('specialization', '').strip()
+            join = request.POST.get('join_date', '').strip()
+            if join:
+                profile.join_date = join
+            else:
+                profile.join_date = None
+        
+        profile.save()
+        
+        # Add success message
+        messages.success(request, 'Profile updated successfully!')
+        
+        # Redirect to prevent form resubmission
+        return redirect('profile_view', username=request.user.username)
+    
     # Calculate profile completion
     completion = 0
     if is_own_profile and profile:
-        if profile_user.first_name: completion += 15
-        if profile_user.last_name: completion += 15
+        if profile.display_name: completion += 10
+        if profile_user.first_name: completion += 10
+        if profile_user.last_name: completion += 10
         if profile_user.email: completion += 10
-        if profile.bio: completion += 20
+        if profile.bio: completion += 15
         if profile.phone: completion += 10
         if profile.date_of_birth: completion += 10
         if profile.address: completion += 10
-        if profile.profile_picture and profile.profile_picture != 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=200':
-            completion += 10
+        if profile.profile_picture or profile.avatar_url: completion += 15
     
     # Get user statistics
     stats = {}
@@ -173,10 +256,14 @@ def edit_profile(request):
         request.user.save()
         
         # Update UserProfile
+        profile.display_name = request.POST.get('display_name', '')
         profile.bio = request.POST.get('bio', '')
         profile.phone = request.POST.get('phone', '')
         profile.address = request.POST.get('address', '')
-        profile.profile_picture = request.POST.get('profile_picture', profile.profile_picture)
+        
+        # Handle profile picture upload
+        if request.FILES.get('profile_picture'):
+            profile.profile_picture = request.FILES['profile_picture']
         
         # Date of birth
         dob = request.POST.get('date_of_birth')

@@ -3,18 +3,45 @@
 
 {% block content %}
 <div class="profile-container">
+    {% if messages %}
+    <div class="alert-success">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if is_own_profile %}
+    <form method="POST" enctype="multipart/form-data" id="profileForm" onsubmit="return confirmSave()">
+        {% csrf_token %}
+    {% endif %}
+    
     <div class="profile-header" data-role="{% if profile_user.is_superuser or profile_user.username == 'Admin' %}admin{% elif profile %}{{ profile.user_type }}{% endif %}">
         <div class="profile-cover"></div>
         <div class="profile-info-section">
             <div class="profile-avatar">
-                {% if profile and profile.profile_picture and profile.profile_picture != 'https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=200' %}
-                <img src="{{ profile.profile_picture }}" alt="{{ profile_user.username }}" onerror="this.src='https://ui-avatars.com/api/?name={{ profile.get_display_name|urlencode }}&background=1877f2&color=fff&size=200'">
+                {% if is_own_profile %}
+                <div class="avatar-container">
+                    <img src="{{ profile.get_profile_picture_url }}" alt="{{ profile_user.username }}" id="avatarPreview">
+                    <button type="button" class="avatar-edit-btn" onclick="openAvatarModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
+                <input type="hidden" id="avatar_choice" name="avatar_choice" value="">
                 {% else %}
-                <img src="https://ui-avatars.com/api/?name={{ profile.get_display_name|urlencode }}&background=1877f2&color=fff&size=200&bold=true&font-size=0.4" alt="{{ profile_user.username }}">
+                <img src="{{ profile.get_profile_picture_url }}" alt="{{ profile_user.username }}">
                 {% endif %}
             </div>
             <div class="profile-details">
+                {% if is_own_profile %}
+                <input type="text" name="display_name" value="{{ profile.display_name|default:'' }}" placeholder="Display Name" class="editable-title">
+                {% else %}
                 <h1>{{ profile.get_display_name }}</h1>
+                {% endif %}
                 <p class="profile-username">@{{ profile_user.username }}</p>
                 {% if profile_user.is_superuser or profile_user.username == 'Admin' %}
                 <span class="profile-badge badge-admin">
@@ -34,7 +61,10 @@
             </div>
             {% if is_own_profile %}
             <div class="profile-actions">
-                <a href="{% url 'edit_profile' %}" class="btn-edit-profile"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span> Edit Profile</a>
+                <button type="submit" class="btn-save-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    Save Changes
+                </button>
             </div>
             {% endif %}
         </div>
@@ -45,237 +75,245 @@
             <!-- About Section -->
             <div class="profile-card">
                 <h2>About</h2>
+                {% if is_own_profile %}
+                <textarea name="bio" rows="4" placeholder="Tell us about yourself..." class="editable-textarea">{{ profile.bio }}</textarea>
+                {% else %}
                 {% if profile.bio %}
                 <p class="profile-bio">{{ profile.bio }}</p>
                 {% else %}
-                <div class="empty-state">
-                    <p class="empty-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></span></p>
-                    <p class="empty-text">No bio added yet</p>
-                    {% if is_own_profile %}
-                    <a href="{% url 'edit_profile' %}" class="empty-action">Add Bio</a>
-                    {% endif %}
-                </div>
+                <p class="empty-text">No bio added yet</p>
                 {% endif %}
-                
-                {% if profile_user.email or profile.phone or profile.date_of_birth or profile.address %}
+                {% endif %}
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="profile-card">
+                <h2>Contact Information</h2>
                 <div class="profile-info-grid">
-                    {% if profile_user.email %}
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+                        <div>
+                            <p class="label">First Name</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="First Name" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ user.first_name|default:"Not set" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+                        <div>
+                            <p class="label">Last Name</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Last Name" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ user.last_name|default:"Not set" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span>
                         <div>
                             <p class="label">Email</p>
-                            <p class="value">{{ profile_user.email }}</p>
+                            {% if is_own_profile %}
+                            <input type="email" name="email" value="{{ user.email }}" placeholder="email@example.com" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ user.email|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.phone %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></span>
                         <div>
                             <p class="label">Phone</p>
-                            <p class="value">{{ profile.phone }}</p>
+                            {% if is_own_profile %}
+                            <input type="tel" name="phone" value="{{ profile.phone }}" placeholder="+1 234 567 8900" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.phone|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.date_of_birth %}
                     <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"></path><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"></path><path d="M2 21h20"></path></svg></span>
+                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
                         <div>
                             <p class="label">Date of Birth</p>
-                            <p class="value">{{ profile.date_of_birth|date:"M d, Y" }}</p>
+                            {% if is_own_profile %}
+                            <input type="date" name="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.date_of_birth|date:"M d, Y"|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.address %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></span>
                         <div>
                             <p class="label">Address</p>
-                            <p class="value">{{ profile.address }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                {% else %}
-                <div class="empty-state">
-                    <p class="empty-icon"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span></p>
-                    <p class="empty-text">No contact information available</p>
-                    {% if is_own_profile %}
-                    <a href="{% url 'edit_profile' %}" class="empty-action">Add Information</a>
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
-            
-            <!-- Admin Specific Info -->
-            {% if profile_user.is_superuser or profile_user.username == 'Admin' %}
-            <div class="profile-card">
-                <h2>Administrator Information</h2>
-                <div class="profile-info-grid">
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
-                        <div>
-                            <p class="label">Total Users</p>
-                            <p class="value">{{ stats.total_users|default:"0" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></span>
-                        <div>
-                            <p class="label">Total Meetings</p>
-                            <p class="value">{{ stats.total_meetings|default:"0" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span>
-                        <div>
-                            <p class="label">Live Meetings</p>
-                            <p class="value">{{ stats.live_meetings|default:"0" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></span>
-                        <div>
-                            <p class="label">Total Cameras</p>
-                            <p class="value">{{ stats.total_cameras|default:"0" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg></span>
-                        <div>
-                            <p class="label">Access Level</p>
-                            <p class="value">Full Access</p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
-                        <div>
-                            <p class="label">Role</p>
-                            <p class="value">System Administrator</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="address" value="{{ profile.address }}" placeholder="Your address" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.address|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Type Specific Info -->
-            {% elif profile and profile.user_type == 'student' %}
+            <!-- Student/Teacher Specific Info -->
+            {% if profile.user_type == 'student' %}
             <div class="profile-card">
                 <h2>Student Information</h2>
                 <div class="profile-info-grid">
-                    {% if profile.student_id %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="M15 8h2"></path><path d="M15 12h2"></path><path d="M7 16h10"></path></svg></span>
                         <div>
                             <p class="label">Student ID</p>
-                            <p class="value">{{ profile.student_id }}</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="student_id" value="{{ profile.student_id }}" placeholder="Student ID" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.student_id|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.grade %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
                         <div>
                             <p class="label">Grade</p>
-                            <p class="value">{{ profile.grade }}</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="grade" value="{{ profile.grade }}" placeholder="e.g., 10th Grade" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.grade|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.enrollment_date %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
                         <div>
                             <p class="label">Enrollment Date</p>
-                            <p class="value">{{ profile.enrollment_date|date:"M d, Y" }}</p>
+                            {% if is_own_profile %}
+                            <input type="date" name="enrollment_date" value="{{ profile.enrollment_date|date:'Y-m-d' }}" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.enrollment_date|date:"M d, Y"|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
             {% elif profile.user_type == 'teacher' %}
             <div class="profile-card">
                 <h2>Teacher Information</h2>
                 <div class="profile-info-grid">
-                    {% if profile.employee_id %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="M15 8h2"></path><path d="M15 12h2"></path><path d="M7 16h10"></path></svg></span>
                         <div>
                             <p class="label">Employee ID</p>
-                            <p class="value">{{ profile.employee_id }}</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="employee_id" value="{{ profile.employee_id }}" placeholder="Employee ID" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.employee_id|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.department %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path></svg></span>
                         <div>
                             <p class="label">Department</p>
-                            <p class="value">{{ profile.department }}</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="department" value="{{ profile.department }}" placeholder="e.g., Mathematics" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.department|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.specialization %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
                         <div>
                             <p class="label">Specialization</p>
-                            <p class="value">{{ profile.specialization }}</p>
+                            {% if is_own_profile %}
+                            <input type="text" name="specialization" value="{{ profile.specialization }}" placeholder="e.g., Calculus, Algebra" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.specialization|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                     
-                    {% if profile.join_date %}
                     <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
                         <div>
                             <p class="label">Join Date</p>
-                            <p class="value">{{ profile.join_date|date:"M d, Y" }}</p>
+                            {% if is_own_profile %}
+                            <input type="date" name="join_date" value="{{ profile.join_date|date:'Y-m-d' }}" class="editable-input">
+                            {% else %}
+                            <p class="value">{{ profile.join_date|date:"M d, Y"|default:"Not set" }}</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
             {% endif %}
             
             <!-- Social Links -->
-            {% if profile.linkedin or profile.twitter or profile.website %}
             <div class="profile-card">
                 <h2>Social Links</h2>
-                <div class="social-links">
-                    {% if profile.linkedin %}
-                    <a href="{{ profile.linkedin }}" target="_blank" class="social-link">
+                <div class="profile-info-grid">
+                    <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
-                        <span>LinkedIn</span>
-                    </a>
-                    {% endif %}
+                        <div>
+                            <p class="label">LinkedIn</p>
+                            {% if is_own_profile %}
+                            <input type="url" name="linkedin" value="{{ profile.linkedin }}" placeholder="https://linkedin.com/in/username" class="editable-input">
+                            {% else %}
+                            {% if profile.linkedin %}
+                            <a href="{{ profile.linkedin }}" target="_blank" class="value">View Profile</a>
+                            {% else %}
+                            <p class="value">Not set</p>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
                     
-                    {% if profile.twitter %}
-                    <a href="{{ profile.twitter }}" target="_blank" class="social-link">
+                    <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></span>
-                        <span>Twitter</span>
-                    </a>
-                    {% endif %}
+                        <div>
+                            <p class="label">Twitter</p>
+                            {% if is_own_profile %}
+                            <input type="url" name="twitter" value="{{ profile.twitter }}" placeholder="https://twitter.com/username" class="editable-input">
+                            {% else %}
+                            {% if profile.twitter %}
+                            <a href="{{ profile.twitter }}" target="_blank" class="value">View Profile</a>
+                            {% else %}
+                            <p class="value">Not set</p>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
                     
-                    {% if profile.website %}
-                    <a href="{{ profile.website }}" target="_blank" class="social-link">
+                    <div class="info-item">
                         <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
-                        <span>Website</span>
-                    </a>
-                    {% endif %}
+                        <div>
+                            <p class="label">Website</p>
+                            {% if is_own_profile %}
+                            <input type="url" name="website" value="{{ profile.website }}" placeholder="https://yourwebsite.com" class="editable-input">
+                            {% else %}
+                            {% if profile.website %}
+                            <a href="{{ profile.website }}" target="_blank" class="value">Visit Website</a>
+                            {% else %}
+                            <p class="value">Not set</p>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-            {% endif %}
         </div>
         
         <div class="profile-sidebar">
@@ -284,12 +322,15 @@
             <div class="profile-card">
                 <h2>Profile Completion</h2>
                 <div class="completion-indicator">
-                    <div class="completion-bar">
-                        <div class="completion-fill" style="width: {{ completion }}%"></div>
+                    <div class="completion-circle" data-percent="{{ completion }}">
+                        <svg viewBox="0 0 36 36">
+                            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            <path class="circle" stroke-dasharray="{{ completion }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            <text x="18" y="20.35" class="percentage">{{ completion }}%</text>
+                        </svg>
                     </div>
-                    <p class="completion-text">{{ completion }}% Complete</p>
                     {% if completion < 100 %}
-                    <a href="{% url 'edit_profile' %}" class="completion-action">Complete Your Profile</a>
+                    <p class="completion-hint">Fill in more details to complete your profile</p>
                     {% else %}
                     <p class="completion-success">✓ Profile Complete!</p>
                     {% endif %}
@@ -338,5 +379,193 @@
             </div>
         </div>
     </div>
+    
+    {% if is_own_profile %}
+    </form>
+    
+    <!-- Avatar Selection Modal -->
+    <div id="avatarModal" class="avatar-modal">
+        <div class="avatar-modal-content">
+            <div class="avatar-modal-header">
+                <h2>Choose Profile Picture</h2>
+                <button type="button" class="modal-close" onclick="closeAvatarModal()">&times;</button>
+            </div>
+            <div class="avatar-modal-body">
+                <h3>Select an Avatar</h3>
+                <div class="avatar-grid">
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4" alt="Avatar 1">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede" alt="Avatar 2">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Luna&backgroundColor=ffd5dc')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna&backgroundColor=ffd5dc" alt="Avatar 3">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Max&backgroundColor=ffdfbf')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max&backgroundColor=ffdfbf" alt="Avatar 4">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie&backgroundColor=d1d4f9')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie&backgroundColor=d1d4f9" alt="Avatar 5">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver&backgroundColor=c7f9cc')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver&backgroundColor=c7f9cc" alt="Avatar 6">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffc9c9')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Emma&backgroundColor=ffc9c9" alt="Avatar 7">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=b4e7ce')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack&backgroundColor=b4e7ce" alt="Avatar 8">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Mia&backgroundColor=ffeaa7')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia&backgroundColor=ffeaa7" alt="Avatar 9">
+                    </div>
+                    <div class="avatar-option" onclick="selectAvatar('https://api.dicebear.com/7.x/avataaars/svg?seed=Leo&backgroundColor=dfe6e9')">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Leo&backgroundColor=dfe6e9" alt="Avatar 10">
+                    </div>
+                </div>
+                
+                <div class="avatar-divider">
+                    <span>OR</span>
+                </div>
+                
+                <div class="avatar-upload-section">
+                    <h3>Upload Your Own</h3>
+                    <button type="button" class="btn-upload-photo" onclick="document.getElementById('profile_picture').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Browse from Device
+                    </button>
+                    <p class="upload-hint">JPG, PNG or GIF - Max 5MB</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+let formChanged = false;
+
+// Track changes in form
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('profileForm');
+    if (form) {
+        const inputs = form.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = true;
+                document.querySelector('.btn-save-profile').classList.add('has-changes');
+            });
+        });
+    }
+});
+
+function confirmSave() {
+    if (!formChanged) {
+        alert('No changes detected. Make some changes before saving.');
+        return false;
+    }
+    return true;
+}
+
+function openAvatarModal() {
+    document.getElementById('avatarModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAvatarModal() {
+    document.getElementById('avatarModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function selectAvatar(avatarUrl) {
+    document.getElementById('avatarPreview').src = avatarUrl;
+    document.getElementById('avatar_choice').value = avatarUrl;
+    formChanged = true;
+    document.querySelector('.btn-save-profile').classList.add('has-changes');
+    closeAvatarModal();
+}
+
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+            document.getElementById('avatar_choice').value = '';
+            formChanged = true;
+            document.querySelector('.btn-save-profile').classList.add('has-changes');
+            closeAvatarModal();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// File input change handler
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('profile_picture');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            previewAvatar(this);
+        });
+    }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('avatarModal');
+    if (event.target === modal) {
+        closeAvatarModal();
+    }
+}
+
+// Warn before leaving if there are unsaved changes
+window.addEventListener('beforeunload', function(e) {
+    if (formChanged) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+    }
+});
+</script>
+
+<style>
+.alert-success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-save-profile.has-changes {
+    background: #31a24c;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(49, 162, 76, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(49, 162, 76, 0);
+    }
+}
+</style>
 {% endblock %}

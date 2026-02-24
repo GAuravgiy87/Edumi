@@ -6,9 +6,29 @@
     <div class="dashboard-header">
         <div>
             <h1>Student Dashboard</h1>
-            <p>Welcome back, {{ user.username }}!</p>
+            <p>Welcome back, {{ profile.get_display_name }}!</p>
+        </div>
+        <div class="profile-quick-view">
+            <img src="{{ profile.get_profile_picture_url }}" alt="{{ user.username }}" class="header-avatar">
         </div>
     </div>
+    
+    <!-- Profile Completion Banner -->
+    {% if profile_completion < 100 %}
+    <div class="completion-banner">
+        <div class="completion-info">
+            <h3>Complete Your Profile</h3>
+            <p>Your profile is {{ profile_completion }}% complete. Add more information to help others know you better!</p>
+        </div>
+        <div class="completion-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ profile_completion }}%"></div>
+            </div>
+            <span class="progress-text">{{ profile_completion }}%</span>
+        </div>
+        <a href="{% url 'edit_profile' %}" class="btn-complete">Complete Profile</a>
+    </div>
+    {% endif %}
     
     <div class="dashboard-grid">
         <!-- Quick Stats -->
@@ -28,7 +48,7 @@
             </div>
             <div class="stat-info">
                 <h3>Attended</h3>
-                <p class="stat-number">-</p>
+                <p class="stat-number">{{ attended_meetings }}</p>
             </div>
         </div>
         

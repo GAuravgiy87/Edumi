@@ -7,10 +7,16 @@
         <h2>Edit Profile</h2>
         <p class="subtitle">Update your personal information</p>
         
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             
             <h3 class="section-title">Basic Information</h3>
+            
+            <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input type="text" id="display_name" name="display_name" value="{{ profile.display_name }}" placeholder="How you want to be called">
+                <small>This will be shown instead of your username</small>
+            </div>
             
             <div class="form-row">
                 <div class="form-group">
@@ -52,21 +58,23 @@
             </div>
             
             <div class="form-group">
-                <label for="profile_picture">Profile Picture URL</label>
-                <input type="url" id="profile_picture" name="profile_picture" value="{{ profile.profile_picture }}" placeholder="https://example.com/image.jpg" onchange="updateProfilePreview(this.value)">
-                <small>Enter a URL to your profile picture</small>
+                <label for="profile_picture">Profile Picture</label>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" onchange="previewImage(this)">
+                <small>Upload a profile picture (JPG, PNG, GIF - Max 5MB)</small>
                 <div class="profile-picture-preview">
-                    <img id="profile-preview-img" src="{{ profile.profile_picture|default:'https://ui-avatars.com/api/?name='|add:user.username|add:'&background=1877f2&color=fff&size=200' }}" alt="Profile Preview" onerror="this.src='https://ui-avatars.com/api/?name={{ user.username }}&background=1877f2&color=fff&size=200'">
+                    <img id="profile-preview-img" src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ user.username }}&background=1877f2&color=fff&size=200{% endif %}" alt="Profile Preview">
                 </div>
             </div>
             
             <script>
-            function updateProfilePreview(url) {
+            function previewImage(input) {
                 const img = document.getElementById('profile-preview-img');
-                if (url) {
-                    img.src = url;
-                } else {
-                    img.src = 'https://ui-avatars.com/api/?name={{ user.username }}&background=1877f2&color=fff&size=200';
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(input.files[0]);
                 }
             }
             </script>

@@ -11,7 +11,7 @@ sys.path.insert(0, str(MAIN_PROJECT_DIR))
 
 SECRET_KEY = 'camera-service-key-change-in-production'
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.17.2.47', '*']
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -32,8 +32,10 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://10.17.2.47:8000",
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development
 
 ROOT_URLCONF = 'camera_service.urls'
 
