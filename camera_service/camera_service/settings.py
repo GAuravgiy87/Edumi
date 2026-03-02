@@ -13,6 +13,30 @@ SECRET_KEY = 'camera-service-key-change-in-production'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.17.2.47', '*']
 
+# Disable SSL redirect for development (enable in production)
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost',
+    'https://localhost:8443',
+    'https://127.0.0.1',
+    'https://127.0.0.1:8443',
+    'https://10.17.2.47',
+    'https://10.17.2.47:8443',
+]
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECURE_HSTS_SECONDS = 0
+
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -30,6 +54,12 @@ MIDDLEWARE = [
 
 # CORS settings - allow main app to access camera service
 CORS_ALLOWED_ORIGINS = [
+    "https://localhost",
+    "https://localhost:8443",
+    "https://127.0.0.1",
+    "https://127.0.0.1:8443",
+    "https://10.17.2.47",
+    "https://10.17.2.47:8443",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://10.17.2.47:8000",

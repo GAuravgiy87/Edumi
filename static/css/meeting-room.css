@@ -54,6 +54,50 @@
     font-family: 'Courier New', monospace;
 }
 
+.recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #ef4444;
+}
+
+.recording-dot {
+    width: 12px;
+    height: 12px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: recording-pulse 1.5s ease-in-out infinite;
+}
+
+.recording-text {
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recording-timer {
+    color: #e8eaed;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+@keyframes recording-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.9);
+    }
+}
+
 .meet-main {
     position: fixed;
     top: 65px;
@@ -514,6 +558,25 @@
 
 .control-button.danger svg {
     stroke: white;
+}
+
+.control-button.recording {
+    background: #ef4444;
+    animation: recording-pulse 2s ease-in-out infinite;
+}
+
+.control-button.recording svg {
+    stroke: white;
+    fill: white;
+}
+
+@keyframes recording-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .sidebar-tab .icon {
